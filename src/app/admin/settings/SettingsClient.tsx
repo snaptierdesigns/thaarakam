@@ -12,9 +12,23 @@ interface SettingsClientProps {
 
 export default function SettingsClient({ initialSettings }: SettingsClientProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Extract scale from initialSettings
+  const getInitialScale = () => {
+    const url = initialSettings?.logo_url || '';
+    const match = url.match(/#scale=(\d+)/);
+    return match ? Number(match[1]) : 100;
+  };
+
+  const getCleanLogoUrl = () => {
+    const url = initialSettings?.logo_url || '';
+    return url.split('#')[0] || '';
+  };
+
+  const [logoScale, setLogoScale] = useState(getInitialScale());
+
   const [form, setForm] = useState<Partial<Settings>>({
     business_name: initialSettings?.business_name ?? 'Thaarakam',
-    logo_url: initialSettings?.logo_url ?? '',
+    logo_url: getCleanLogoUrl(),
     whatsapp_number: initialSettings?.whatsapp_number ?? '',
     store_email: initialSettings?.store_email ?? '',
     shipping_kerala: initialSettings?.shipping_kerala ?? 40,
@@ -93,7 +107,13 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     }
 
     try {
-      const res = await updateStoreSettings(form);
+      const logoUrlBase = form.logo_url ? form.logo_url.split('#')[0] : '';
+      const updatedForm = {
+        ...form,
+        logo_url: logoUrlBase ? `${logoUrlBase}#scale=${logoScale}` : `#scale=${logoScale}`
+      };
+      
+      const res = await updateStoreSettings(updatedForm);
       if (res.success) {
         setStatus({ type: 'success', message: 'Store settings updated successfully!' });
       } else {
@@ -201,13 +221,14 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
               Store Logo
             </span>
             <div className="flex items-center gap-6">
-              {form.logo_url ? (
-                <div className="relative border border-border p-2 rounded-xl bg-border/5">
-                  <img
-                    src={form.logo_url}
-                    alt="Logo Preview"
-                    className="h-12 w-28 object-contain"
-                  />
+              <div className="relative border border-border p-4 rounded-xl bg-border/5 flex items-center justify-center min-h-24 min-w-36 overflow-hidden">
+                <img
+                  src={form.logo_url || '/images/thaarakaml.png'}
+                  alt="Logo Preview"
+                  style={{ height: `${32 * (logoScale / 100)}px` }}
+                  className="max-w-[200px] object-contain transition-all duration-200"
+                />
+                {form.logo_url && form.logo_url !== '/images/thaarakaml.png' && (
                   <button
                     type="button"
                     onClick={handleRemoveLogo}
@@ -216,12 +237,38 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
+                )}
+              </div>
+
+              {/* Zoom controls */}
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">
+                    Logo Size (Zoom)
+                  </span>
+                  <span className="text-[11px] font-semibold text-foreground mt-0.5">
+                    {logoScale}%
+                  </span>
                 </div>
-              ) : (
-                <div className="h-12 w-28 rounded-xl border border-dashed border-border flex items-center justify-center text-secondary text-[10px] italic bg-border/5">
-                  No Logo
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setLogoScale((prev) => Math.max(50, prev - 10))}
+                    className="h-8 w-8 rounded-lg border border-border bg-background text-foreground flex items-center justify-center font-bold hover:bg-border/20 active:scale-95 transition-all text-xs"
+                    title="Zoom Out"
+                  >
+                    -
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLogoScale((prev) => Math.min(200, prev + 10))}
+                    className="h-8 w-8 rounded-lg border border-border bg-background text-foreground flex items-center justify-center font-bold hover:bg-border/20 active:scale-95 transition-all text-xs"
+                    title="Zoom In"
+                  >
+                    +
+                  </button>
                 </div>
-              )}
+              </div>
 
               <button
                 type="button"

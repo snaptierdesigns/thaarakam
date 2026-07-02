@@ -59,14 +59,27 @@ export default function Navbar() {
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
-        {/* Logo / Title */}
         <div className="flex lg:flex-1 justify-center lg:justify-start">
           <Link href="/" className="flex items-center gap-2">
-            <img
-              src="/images/thaarakaml.png"
-              alt={settings?.business_name || 'Thaarakam'}
-              className="h-8 max-w-[150px] object-contain"
-            />
+            {(() => {
+              const rawLogoUrl = settings?.logo_url || '';
+              const cleanLogoUrl = rawLogoUrl.split('#')[0] || '/images/thaarakaml.png';
+              const scaleMatch = rawLogoUrl.match(/#scale=(\d+)/);
+              const logoScale = scaleMatch ? Number(scaleMatch[1]) : 100;
+              
+              const logoSrc = (cleanLogoUrl.startsWith('http') && !cleanLogoUrl.includes('/images/'))
+                ? cleanLogoUrl
+                : '/images/thaarakaml.png';
+
+              return (
+                <img
+                  src={logoSrc}
+                  alt={settings?.business_name || 'Thaarakam'}
+                  style={{ height: `${32 * (logoScale / 100)}px` }}
+                  className="max-w-[200px] object-contain transition-all duration-300"
+                />
+              );
+            })()}
           </Link>
         </div>
 
