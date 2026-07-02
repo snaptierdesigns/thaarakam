@@ -41,6 +41,19 @@ export default function Footer() {
             <p className="max-w-xs text-sm leading-relaxed text-secondary">
               Premium, elegant, and minimal fine jewellery curated for modern sophistication. Simple booking, delivered to your door.
             </p>
+            <div className="flex items-center gap-3 mt-1">
+              <a
+                href="https://www.instagram.com/thaarakam_by_nithara"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-secondary hover:text-foreground transition-all duration-200 flex items-center gap-1.5"
+              >
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fillRule="evenodd" d="M12.315 2c2.43 0 2.784.008 3.885.058 1.012.046 1.724.207 2.2.39a4.121 4.121 0 011.51 1.04 4.08 4.08 0 011.04 1.51c.182.476.343 1.188.39 2.2.049 1.1.058 1.455.058 3.885 0 2.43-.008 2.784-.058 3.885-.046 1.012-.207 1.724-.39 2.2a4.121 4.121 0 01-1.04 1.51 4.08 4.08 0 01-1.51 1.04c-.476.182-1.188.343-2.2.39-1.1.049-1.455.058-3.885.058-2.43 0-2.784-.008-3.885-.058-1.012-.046-1.724-.207-2.2-.39a4.122 4.122 0 01-1.51-1.04 4.08 4.08 0 01-1.04-1.51c-.182-.476-.343-1.188-.39-2.2-.049-1.1-.058-1.455-.058-3.885 0-2.43.008-2.784.058-3.885.046-1.012.207-1.724.39-2.2a4.122 4.122 0 011.04-1.51 4.08 4.08 0 011.51-1.04c.476-.182 1.188-.343 2.2-.39 1.1-.049 1.455-.058 3.885-.058zm-.21 2.32c-2.405 0-2.685.009-3.637.052-.876.04-1.352.186-1.669.31-.42.163-.72.358-1.036.673a3.111 3.111 0 00-.673 1.036c-.124.317-.27.793-.31 1.669-.043.952-.052 1.232-.052 3.637s.009 2.685.052 3.637c.04.876.186 1.352.31 1.669.163.42.358.72.673 1.036.317.317.617.512 1.036.673.317.124.793.27 1.669.31.952.043 1.232.052 3.637.052s2.685-.009 3.637-.052c.876-.04 1.352-.186 1.669-.31.42-.163.72-.358 1.036-.673.317-.317.512-.617.673-1.036.124-.317.27-.793.31-1.669.043-.952.052-1.232.052-3.637s-.009-2.685-.052-3.637c-.04-.876-.186-1.352-.31-1.669a3.111 3.111 0 00-.673-1.036 3.116 3.116 0 00-1.036-.673c-.317-.124-.793-.27-1.669-.31-.952-.043-1.233-.052-3.637-.052zm0 3.262a4.418 4.418 0 100 8.837 4.418 4.418 0 000-8.837zm0 7.037a2.62 2.62 0 110-5.24 2.62 2.62 0 010 5.24zm4.877-7.204a1.03 1.03 0 11-2.06 0 1.03 1.03 0 012.06 0z" clipRule="evenodd" />
+                </svg>
+                <span>@thaarakam_by_nithara</span>
+              </a>
+            </div>
           </div>
 
           {/* Links Grid */}
@@ -144,6 +157,16 @@ export default function Footer() {
                     </a>
                   </li>
                 )}
+                <li>
+                  <a
+                    href="https://www.instagram.com/thaarakam_by_nithara"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-secondary hover:text-foreground transition-colors"
+                  >
+                    Instagram: @thaarakam_by_nithara
+                  </a>
+                </li>
                 <li className="text-xs text-secondary leading-relaxed">
                   Kerala, India
                 </li>

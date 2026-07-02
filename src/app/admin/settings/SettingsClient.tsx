@@ -310,7 +310,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
                 value={form.shipping_kerala}
                 onChange={handleInputChange}
                 className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                placeholder="40"
+                placeholder="50"
               />
             </div>
 
