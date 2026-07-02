@@ -62,17 +62,11 @@ export default function Navbar() {
         {/* Logo / Title */}
         <div className="flex lg:flex-1 justify-center lg:justify-start">
           <Link href="/" className="flex items-center gap-2">
-            {settings?.logo_url ? (
-              <img
-                src={settings.logo_url}
-                alt={settings.business_name || 'Thaarakam'}
-                className="h-8 max-w-[150px] object-contain"
-              />
-            ) : (
-              <span className="text-xl font-bold tracking-[0.15em] uppercase text-foreground">
-                {settings?.business_name || 'THAARAKAM'}
-              </span>
-            )}
+            <img
+              src="/images/thaarakaml.png"
+              alt={settings?.business_name || 'Thaarakam'}
+              className="h-8 max-w-[150px] object-contain"
+            />
           </Link>
         </div>
 
