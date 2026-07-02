@@ -25,7 +25,7 @@ export default function CartClient({ settings }: CartClientProps) {
   const [formErrors, setFormErrors] = useState<Partial<CheckoutDetails>>({});
 
   // Dynamic shipping fees from settings database
-  const shippingKerala = Number(settings?.shipping_kerala ?? 40);
+  const shippingKerala = Number(settings?.shipping_kerala ?? 50);
   const shippingSouthIndia = Number(settings?.shipping_south_india ?? 60);
   const shippingNorthIndia = Number(settings?.shipping_north_india ?? 80);
 

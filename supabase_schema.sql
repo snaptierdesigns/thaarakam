@@ -21,7 +21,7 @@ create table if not exists public.settings (
     logo_url text,
     whatsapp_number text not null default '910000000000',
     store_email text,
-    shipping_kerala numeric not null default 40,
+    shipping_kerala numeric not null default 50,
     shipping_south_india numeric not null default 60,
     shipping_north_india numeric not null default 80,
     default_description text not null default 'Details
