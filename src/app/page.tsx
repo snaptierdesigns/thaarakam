@@ -236,7 +236,7 @@ export default async function HomePage() {
                   </span>
                   <h2 className="text-3xl font-light tracking-tight text-foreground sm:text-4xl leading-tight">
                     Thaarakam is a big dream.<br />
-                    And every tiny detail <span className="font-normal italic">is a big effort.</span>
+                    And every tiny detail is a big effort.
                   </h2>
                 </div>
 
