@@ -261,7 +261,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
                   </button>
                   <button
                     type="button"
-                    onClick={() => setLogoScale((prev) => Math.min(200, prev + 10))}
+                    onClick={() => setLogoScale((prev) => Math.min(400, prev + 10))}
                     className="h-8 w-8 rounded-lg border border-border bg-background text-foreground flex items-center justify-center font-bold hover:bg-border/20 active:scale-95 transition-all text-xs"
                     title="Zoom In"
                   >
