@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { Settings } from '@/types';
+import { revalidatePath } from 'next/cache';
 
 // Admin Login Server Action
 export async function loginAdmin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
@@ -45,6 +46,8 @@ export async function updateStoreSettings(settingsData: Partial<Settings>) {
       return { success: false, error: error.message };
     }
 
+    revalidatePath('/');
+    revalidatePath('/shop');
     return { success: true };
   } catch (error: any) {
     console.error('Unexpected error updating settings:', error);
@@ -83,6 +86,9 @@ export async function saveProduct(productData: any, productId?: string) {
         console.error('Error updating product:', error);
         return { success: false, error: error.message };
       }
+      
+      revalidatePath('/shop');
+      revalidatePath(`/product/${productId}`);
       return { success: true, data };
     } else {
       const { data, error } = await admin
@@ -93,6 +99,11 @@ export async function saveProduct(productData: any, productId?: string) {
       if (error) {
         console.error('Error inserting product:', error);
         return { success: false, error: error.message };
+      }
+
+      revalidatePath('/shop');
+      if (data?.[0]?.id) {
+        revalidatePath(`/product/${data[0].id}`);
       }
       return { success: true, data };
     }
@@ -116,9 +127,23 @@ export async function deleteProduct(productId: string) {
       return { success: false, error: error.message };
     }
 
+    revalidatePath('/shop');
+    revalidatePath(`/product/${productId}`);
     return { success: true };
   } catch (error: any) {
     console.error('Unexpected error deleting product:', error);
     return { success: false, error: error?.message || 'Server error' };
+  }
+}
+
+// Revalidate product cache from client components
+export async function revalidateProductDetails(id: string) {
+  try {
+    revalidatePath('/shop');
+    revalidatePath(`/product/${id}`);
+    return { success: true };
+  } catch (err) {
+    console.error('Failed to revalidate path:', err);
+    return { success: false };
   }
 }

@@ -6,6 +6,7 @@ import { useCart } from '@/components/ui/CartProvider';
 import { Settings, CheckoutDetails } from '@/types';
 import { Trash2, Plus, Minus, ShoppingBag, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { revalidateProductDetails } from '@/app/admin/actions';
 
 interface CartClientProps {
   settings: Settings | null;
@@ -154,6 +155,9 @@ export default function CartClient({ settings }: CartClientProps) {
                 availability: availability
               })
               .eq('id', item.product.id);
+
+            // Trigger on-demand cache revalidation
+            await revalidateProductDetails(item.product.id);
           }
         }
       } catch (err) {

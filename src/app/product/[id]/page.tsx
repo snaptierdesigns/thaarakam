@@ -6,8 +6,8 @@ import ProductDetailsClient from './ProductDetailsClient';
 import { supabase } from '@/lib/supabase';
 import { Product, Settings } from '@/types';
 
-// Force dynamic rendering to load fresh database content
-export const revalidate = 0;
+// Enable Incremental Static Regeneration (ISR) to cache product details on CDN Edge for 5 minutes
+export const revalidate = 300;
 
 type Params = Promise<{ id: string }>;
 
