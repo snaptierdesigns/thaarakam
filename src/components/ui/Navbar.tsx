@@ -138,6 +138,14 @@ export default function Navbar() {
             About
           </Link>
           <Link
+            href="/reviews"
+            className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
+              pathname === '/reviews' ? 'text-foreground font-semibold' : 'text-secondary'
+            }`}
+          >
+            Reviews
+          </Link>
+          <Link
             href="/contact"
             className={`text-sm font-medium transition-colors hover:text-foreground/80 ${
               pathname === '/contact' ? 'text-foreground font-semibold' : 'text-secondary'
@@ -201,6 +209,12 @@ export default function Navbar() {
               className="text-sm font-medium text-secondary"
             >
               About
+            </Link>
+            <Link
+              href="/reviews"
+              className={`text-sm font-medium ${pathname === '/reviews' ? 'text-foreground font-semibold' : 'text-secondary'}`}
+            >
+              Reviews
             </Link>
             <Link
               href="/contact"

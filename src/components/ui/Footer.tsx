@@ -81,6 +81,11 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/reviews" className="text-xs text-secondary hover:text-foreground transition-colors">
+                    Customer Reviews
+                  </Link>
+                </li>
+                <li>
                   <Link href="/#contact" className="text-xs text-secondary hover:text-foreground transition-colors">
                     Contact Us
                   </Link>
