@@ -227,84 +227,18 @@ export default function ReviewsPage() {
                 )}
               </div>
 
-              {/* Review Submission Form */}
-              <form onSubmit={handleSubmit} className="rounded-2xl border border-border p-6 bg-border/5 flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="rounded-lg p-1.5 border border-border bg-background text-foreground">
-                    <MessageSquare className="h-4 w-4 stroke-[1.5]" />
-                  </span>
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                    Share Your Feedback
-                  </h2>
-                </div>
-
-                {status && (
-                  <p
-                    className={`text-xs font-semibold ${
-                      status.includes('successfully') ? 'text-green-700' : 'text-red-500'
-                    }`}
-                  >
-                    {status}
-                  </p>
-                )}
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="name" className="text-[9px] font-semibold uppercase tracking-wider text-secondary">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={reviewerName}
-                    onChange={(e) => setReviewerName(e.target.value)}
-                    required
-                    placeholder="e.g. Shalini P."
-                    className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-[9px] font-semibold uppercase tracking-wider text-secondary">
-                    Rating
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setRating(star)}
-                        className="p-0.5 text-amber-500 hover:scale-110 active:scale-95 transition-all focus:outline-none"
-                      >
-                        <Star className={`h-5 w-5 ${star <= rating ? 'fill-current' : 'stroke-current fill-none'}`} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="reviewComment" className="text-[9px] font-semibold uppercase tracking-wider text-secondary">
-                    Comments
-                  </label>
-                  <textarea
-                    id="reviewComment"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    required
-                    rows={4}
-                    placeholder="Tell us about the quality, finish, packaging, or customer service..."
-                    className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors resize-none leading-relaxed"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full rounded-xl bg-foreground text-background py-3 text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 mt-1"
-                >
-                  <Send className="h-3.5 w-3.5" />
-                  {submitting ? 'Submitting...' : 'Post Review'}
-                </button>
-              </form>
+              {/* Review Submission Notice */}
+              <div className="rounded-2xl border border-dashed border-border p-6 bg-border/5 flex flex-col gap-3 text-center">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                  Verified Reviews Only
+                </h3>
+                <p className="text-[11px] text-secondary leading-relaxed">
+                  To prevent spam and ensure all feedback is 100% genuine, public review submissions are disabled.
+                </p>
+                <p className="text-[10px] text-secondary/60">
+                  Have a review to share? Send it to us directly on WhatsApp or Instagram, and we will publish it!
+                </p>
+              </div>
 
             </div>
 

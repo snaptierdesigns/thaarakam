@@ -147,3 +147,57 @@ export async function revalidateProductDetails(id: string) {
     return { success: false };
   }
 }
+
+// Delete review from dashboard
+export async function deleteReview(reviewId: string) {
+  try {
+    const admin = getSupabaseAdmin();
+    const { error } = await admin
+      .from('reviews')
+      .delete()
+      .eq('id', reviewId);
+
+    if (error) {
+      console.error('Error deleting review:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/reviews');
+    return { success: true };
+  } catch (error: any) {
+    console.error('Unexpected error deleting review:', error);
+    return { success: false, error: error?.message || 'Server error' };
+  }
+}
+
+// Add verified review from dashboard
+export async function addReviewByAdmin(reviewData: any) {
+  try {
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin
+      .from('reviews')
+      .insert([
+        {
+          reviewer_name: reviewData.reviewer_name,
+          rating: Number(reviewData.rating),
+          comment: reviewData.comment,
+          product_id: reviewData.product_id || null
+        }
+      ])
+      .select();
+
+    if (error) {
+      console.error('Error adding review:', error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath('/reviews');
+    if (reviewData.product_id) {
+      revalidatePath(`/product/${reviewData.product_id}`);
+    }
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Unexpected error adding review:', error);
+    return { success: false, error: error?.message || 'Server error' };
+  }
+}
