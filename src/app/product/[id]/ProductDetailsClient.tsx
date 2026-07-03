@@ -396,18 +396,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
               )}
             </div>
 
-            {/* Review Submission Notice */}
-            <div className="rounded-2xl border border-dashed border-border p-6 bg-border/5 flex flex-col gap-3 text-center">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                Verified Reviews Only
-              </h3>
-              <p className="text-[11px] text-secondary leading-relaxed">
-                To prevent spam and ensure all feedback is 100% genuine, public review submissions are disabled.
-              </p>
-              <p className="text-[10px] text-secondary/60">
-                Have a review to share? Send it to us directly on WhatsApp or Instagram, and we will publish it!
-              </p>
-            </div>
+
           </div>
 
           {/* Reviews Right Column: List of Reviews (lg:col-span-7) */}
