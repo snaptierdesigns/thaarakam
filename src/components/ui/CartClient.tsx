@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCart } from '@/components/ui/CartProvider';
 import { Settings, CheckoutDetails } from '@/types';
 import { Trash2, Plus, Minus, ShoppingBag, Send } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface CartClientProps {
   settings: Settings | null;
@@ -139,7 +140,30 @@ export default function CartClient({ settings }: CartClientProps) {
     const encodedText = encodeURIComponent(message);
     const whatsappNum = settings.whatsapp_number.replace(/\D/g, ''); // strip non-numeric characters
     
-    // Clear cart upon ordering (or let them keep it)
+    // Decrement product stock in Supabase database
+    const updateStock = async () => {
+      try {
+        for (const item of cart) {
+          if (item.product.stock_count !== undefined && item.product.stock_count !== null) {
+            const newStock = Math.max(0, item.product.stock_count - item.quantity);
+            const availability = newStock === 0 ? 'out_of_stock' : 'in_stock';
+            await supabase
+              .from('products')
+              .update({
+                stock_count: newStock,
+                availability: availability
+              })
+              .eq('id', item.product.id);
+          }
+        }
+      } catch (err) {
+        console.error('Error updating stock on checkout:', err);
+      }
+    };
+    
+    updateStock();
+    
+    // Clear cart upon ordering
     clearCart();
     
     // Redirect to wa.me URL
@@ -402,6 +426,14 @@ export default function CartClient({ settings }: CartClientProps) {
                   ₹{shippingFee} shipping fee applied due to location: {regionLabel}
                 </p>
               )}
+            </div>
+
+            {/* COD Notice */}
+            <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-3 text-[10px] text-amber-800 leading-relaxed flex items-start gap-2 mt-2">
+              <span className="text-xs">⚠️</span>
+              <div>
+                <strong>Cash On Delivery is not available.</strong> We accept payments via UPI (Google Pay, PhonePe, Paytm) or online bank transfer after order confirmation on WhatsApp.
+              </div>
             </div>
 
             <button

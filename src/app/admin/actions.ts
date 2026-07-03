@@ -69,6 +69,7 @@ export async function saveProduct(productData: any, productId?: string) {
       max_size: productData.requires_size ? Number(productData.max_size || 18) : null,
       is_preorder: Boolean(productData.is_preorder),
       availability: productData.availability || 'in_stock',
+      stock_count: productData.stock_count !== undefined && productData.stock_count !== null ? Number(productData.stock_count) : null,
     };
 
     if (productId) {

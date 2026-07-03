@@ -42,6 +42,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const [formMaxSize, setFormMaxSize] = useState('18');
   const [formPreorder, setFormPreorder] = useState(false);
   const [formAvailability, setFormAvailability] = useState<'in_stock' | 'out_of_stock'>('in_stock');
+  const [formStockCount, setFormStockCount] = useState<string>('10');
   
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -66,6 +67,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormMaxSize('18');
     setFormPreorder(false);
     setFormAvailability('in_stock');
+    setFormStockCount('10');
     setStatus(null);
     setSaving(false);
     setView('add');
@@ -83,6 +85,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormMaxSize(product.max_size?.toString() || '18');
     setFormPreorder(product.is_preorder);
     setFormAvailability(product.availability);
+    setFormStockCount(product.stock_count !== null && product.stock_count !== undefined ? product.stock_count.toString() : '');
     setStatus(null);
     setSaving(false);
     setView('edit');
@@ -183,6 +186,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setSaving(true);
 
     try {
+      const parsedStock = formStockCount.trim() === '' ? null : Number(formStockCount);
+      const computedAvailability = (parsedStock !== null && parsedStock <= 0) ? 'out_of_stock' : formAvailability;
+
       const payload = {
         name: formName,
         price: Number(formPrice),
@@ -193,7 +199,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         requires_size: formRequiresSize,
         max_size: formRequiresSize ? Number(formMaxSize || 18) : null,
         is_preorder: formPreorder,
-        availability: formAvailability,
+        availability: computedAvailability,
+        stock_count: parsedStock,
       };
 
       const res = await saveProduct(payload, editingProduct?.id);
@@ -568,6 +575,22 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                     <option value="in_stock">In Stock</option>
                     <option value="out_of_stock">Out of Stock</option>
                   </select>
+                </div>
+
+                {/* Stock Count */}
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="formStockCount" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                    Stock Count
+                  </label>
+                  <input
+                    type="number"
+                    id="formStockCount"
+                    value={formStockCount}
+                    onChange={(e) => setFormStockCount(e.target.value)}
+                    min="0"
+                    placeholder="e.g. 10 (Leave blank for unlimited)"
+                    className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors h-10"
+                  />
                 </div>
 
                 {/* Requires Size Selector */}

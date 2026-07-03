@@ -10,6 +10,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const coverImage = product.images?.[0] || '/images/placeholder.jpg';
   const isOutOfStock = product.availability === 'out_of_stock';
   const isPreorder = product.is_preorder;
+  const isLowStock = product.stock_count !== null && product.stock_count !== undefined && product.stock_count > 0 && product.stock_count <= 5;
 
   return (
     <Link href={`/product/${product.id}`} className="group block">
@@ -23,8 +24,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             </span>
           )}
           {isOutOfStock && !isPreorder && (
-            <span className="inline-flex items-center rounded-md bg-border border border-border/80 text-secondary px-2 py-1 text-[9px] font-semibold uppercase tracking-wider">
+            <span className="inline-flex items-center rounded-md bg-red-100 border border-red-200/50 text-red-700 px-2 py-1 text-[9px] font-semibold uppercase tracking-wider">
               Out of Stock
+            </span>
+          )}
+          {isLowStock && !isOutOfStock && (
+            <span className="inline-flex items-center rounded-md bg-amber-500 text-white px-2 py-1 text-[9px] font-semibold uppercase tracking-wider shadow-sm animate-pulse">
+              Only {product.stock_count} Left
             </span>
           )}
         </div>

@@ -74,6 +74,11 @@ export default async function HomePage() {
     <>
       <Navbar />
       
+      {/* Announcement Bar */}
+      <div className="bg-foreground text-background text-center py-2 px-4 text-[10px] uppercase font-bold tracking-[0.15em] select-none">
+        ✨ Prepaid Orders Only • Cash On Delivery (COD) is not available ✨
+      </div>
+      
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b border-border py-16 lg:py-24">

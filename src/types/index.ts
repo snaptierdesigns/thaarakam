@@ -10,6 +10,7 @@ export interface Product {
   max_size: number | null;
   is_preorder: boolean;
   availability: 'in_stock' | 'out_of_stock';
+  stock_count: number | null;
   created_at: string;
 }
 
@@ -42,6 +43,7 @@ export interface CheckoutDetails {
 
 export const CATEGORIES = [
   'Neckchains',
+  'Pendant',
   'Bangles',
   'Bracelets and Hand Chains',
   'Rings',
