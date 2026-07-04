@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/components/ui/CartProvider';
 import { Settings, CheckoutDetails } from '@/types';
 import { Trash2, Plus, Minus, ShoppingBag, Send } from 'lucide-react';
@@ -214,7 +215,13 @@ export default function CartClient({ settings }: CartClientProps) {
                 <div key={`${item.product.id}-${item.selectedSize ?? 'nosize'}`} className="flex py-6 gap-4">
                   {/* Item Image */}
                   <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-border/20 border border-border/40">
-                    <img src={coverImg} alt={item.product.name} className="h-full w-full object-cover object-center" />
+                    <Image
+                      src={coverImg}
+                      alt={item.product.name}
+                      fill
+                      sizes="96px"
+                      className="object-cover object-center"
+                    />
                   </div>
 
                   {/* Metadata & Operations */}

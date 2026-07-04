@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '@/types';
 
 interface ProductCardProps {
@@ -36,11 +37,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Cover image with group hover zoom */}
-        <img
+        <Image
           src={coverImage}
           alt={product.name}
-          className="h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
-          loading="lazy"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
         />
       </div>
 

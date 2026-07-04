@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product } from '@/types';
 import { useCart } from '@/components/ui/CartProvider';
 import { ChevronLeft, ChevronRight, Plus, Minus, Check, Star } from 'lucide-react';
@@ -172,10 +173,13 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
               </>
             )}
 
-            <img
+            <Image
               src={images[activeImageIndex]}
               alt={`${product.name} - View ${activeImageIndex + 1}`}
-              className="h-full w-full object-cover object-center transition-all duration-300"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover object-center transition-all duration-300"
+              priority
             />
           </div>
 
@@ -192,10 +196,12 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
                       : 'border-border hover:border-foreground/30'
                   }`}
                 >
-                  <img
+                  <Image
                     src={img}
                     alt={`Thumb ${idx + 1}`}
-                    className="h-full w-full object-cover object-center"
+                    fill
+                    sizes="80px"
+                    className="object-cover object-center"
                   />
                 </button>
               ))}

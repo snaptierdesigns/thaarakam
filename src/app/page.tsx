@@ -7,8 +7,8 @@ import { supabase, logSupabaseError } from '@/lib/supabase';
 import { Product, Settings, CATEGORIES } from '@/types';
 import { Search, Gem, Heart } from 'lucide-react';
 
-// Force dynamic rendering to load fresh database content
-export const revalidate = 0;
+// Enable Incremental Static Regeneration (ISR) to cache homepage on CDN Edge for 5 minutes
+export const revalidate = 300;
 
 async function getHomepageData() {
   try {
