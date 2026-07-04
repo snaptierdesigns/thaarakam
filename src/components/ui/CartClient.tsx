@@ -7,7 +7,7 @@ import { useCart } from '@/components/ui/CartProvider';
 import { Settings, CheckoutDetails } from '@/types';
 import { Trash2, Plus, Minus, ShoppingBag, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { revalidateProductDetails } from '@/app/admin/actions';
+import { decrementStockAfterCheckout } from '@/app/admin/actions';
 
 interface CartClientProps {
   settings: Settings | null;
@@ -142,37 +142,26 @@ export default function CartClient({ settings }: CartClientProps) {
     const encodedText = encodeURIComponent(message);
     const whatsappNum = settings.whatsapp_number.replace(/\D/g, ''); // strip non-numeric characters
     
-    // Decrement product stock in Supabase database
-    const updateStock = async () => {
+    // Decrement product stock and finalize order redirect
+    const finalizeCheckout = async () => {
       try {
-        for (const item of cart) {
-          if (item.product.stock_count !== undefined && item.product.stock_count !== null) {
-            const newStock = Math.max(0, item.product.stock_count - item.quantity);
-            const availability = newStock === 0 ? 'out_of_stock' : 'in_stock';
-            await supabase
-              .from('products')
-              .update({
-                stock_count: newStock,
-                availability: availability
-              })
-              .eq('id', item.product.id);
-
-            // Trigger on-demand cache revalidation
-            await revalidateProductDetails(item.product.id);
-          }
-        }
+        const items = cart.map(item => ({
+          id: item.product.id,
+          quantity: item.quantity
+        }));
+        await decrementStockAfterCheckout(items);
       } catch (err) {
         console.error('Error updating stock on checkout:', err);
       }
+      
+      // Clear cart upon ordering
+      clearCart();
+      
+      // Redirect to wa.me URL
+      window.open(`https://wa.me/${whatsappNum}?text=${encodedText}`, '_blank');
     };
     
-    updateStock();
-    
-    // Clear cart upon ordering
-    clearCart();
-    
-    // Redirect to wa.me URL
-    window.open(`https://wa.me/${whatsappNum}?text=${encodedText}`, '_blank');
+    finalizeCheckout();
   };
 
   if (cartCount === 0) {

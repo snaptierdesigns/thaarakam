@@ -201,3 +201,50 @@ export async function addReviewByAdmin(reviewData: any) {
     return { success: false, error: error?.message || 'Server error' };
   }
 }
+
+// Securely decrement product stock on checkout (bypasses RLS via server-side admin client)
+export async function decrementStockAfterCheckout(items: { id: string; quantity: number }[]) {
+  try {
+    const admin = getSupabaseAdmin();
+    
+    for (const item of items) {
+      // Fetch fresh current stock from database to avoid stale-data race conditions
+      const { data: product, error: fetchError } = await admin
+        .from('products')
+        .select('stock_count')
+        .eq('id', item.id)
+        .single();
+        
+      if (fetchError || !product) {
+        console.error(`Error fetching product ${item.id} for stock update:`, fetchError);
+        continue;
+      }
+      
+      if (product.stock_count !== null && product.stock_count !== undefined) {
+        const newStock = Math.max(0, product.stock_count - item.quantity);
+        const availability = newStock === 0 ? 'out_of_stock' : 'in_stock';
+        
+        const { error: updateError } = await admin
+          .from('products')
+          .update({
+            stock_count: newStock,
+            availability: availability
+          })
+          .eq('id', item.id);
+          
+        if (updateError) {
+          console.error(`Error updating stock for product ${item.id}:`, updateError);
+        } else {
+          // Instantly purge edge CDN caches
+          revalidatePath('/shop');
+          revalidatePath(`/product/${item.id}`);
+          revalidatePath('/');
+        }
+      }
+    }
+    return { success: true };
+  } catch (error: any) {
+    console.error('Unexpected error updating stock after checkout:', error);
+    return { success: false, error: error?.message || 'Server error' };
+  }
+}
