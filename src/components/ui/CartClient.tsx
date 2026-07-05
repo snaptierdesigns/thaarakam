@@ -157,8 +157,8 @@ export default function CartClient({ settings }: CartClientProps) {
       // Clear cart upon ordering
       clearCart();
       
-      // Redirect to wa.me URL
-      window.open(`https://wa.me/${whatsappNum}?text=${encodedText}`, '_blank');
+      // Redirect to wa.me URL (use location.href to bypass iOS Safari popup blockers inside async callbacks)
+      window.location.href = `https://wa.me/${whatsappNum}?text=${encodedText}`;
     };
     
     finalizeCheckout();
