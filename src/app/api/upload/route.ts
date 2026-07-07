@@ -15,13 +15,13 @@ export async function POST(request: Request) {
       fileName = 'image.jpg';
     }
 
-    // Convert file to buffer for stable, environment-independent binary serialization
+    // Convert file to array buffer first
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     console.log(`Attempting image upload (${fileName}) to Catbox...`);
     try {
-      // Construct Catbox multipart form body manually
+      // Construct Catbox multipart form body manually as a Web Blob (compatible with Next.js fetch polyfill)
       const catBoundary = '----WebKitFormBoundaryCat' + Math.random().toString(36).substring(2);
       const catHeader = 
         `--${catBoundary}\r\n` +
@@ -32,11 +32,11 @@ export async function POST(request: Request) {
         `Content-Type: ${file.type || 'image/jpeg'}\r\n\r\n`;
       const catFooter = `\r\n--${catBoundary}--\r\n`;
 
-      const catBody = Buffer.concat([
+      const catBody = new Blob([
         Buffer.from(catHeader, 'utf-8'),
         buffer,
         Buffer.from(catFooter, 'utf-8')
-      ]);
+      ], { type: `multipart/form-data; boundary=${catBoundary}` });
 
       const catResponse = await fetch('https://catbox.moe/user/api.php', {
         method: 'POST',
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     // FALLBACK: Upload to PixelDrain
     console.log(`Attempting fallback image upload (${fileName}) to PixelDrain...`);
     try {
-      // Construct PixelDrain multipart form body manually
+      // Construct PixelDrain multipart form body manually as a Web Blob (compatible with Next.js fetch polyfill)
       const pdBoundary = '----WebKitFormBoundaryPD' + Math.random().toString(36).substring(2);
       const pdHeader = 
         `--${pdBoundary}\r\n` +
@@ -71,11 +71,11 @@ export async function POST(request: Request) {
         `Content-Type: ${file.type || 'image/jpeg'}\r\n\r\n`;
       const pdFooter = `\r\n--${pdBoundary}--\r\n`;
 
-      const pdBody = Buffer.concat([
+      const pdBody = new Blob([
         Buffer.from(pdHeader, 'utf-8'),
         buffer,
         Buffer.from(pdFooter, 'utf-8')
-      ]);
+      ], { type: `multipart/form-data; boundary=${pdBoundary}` });
 
       const pdResponse = await fetch('https://pixeldrain.com/api/file', {
         method: 'POST',
