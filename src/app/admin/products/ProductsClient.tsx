@@ -102,6 +102,54 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     }
   };
 
+  // Compress image client-side to maximum 1000px and 75% quality before upload
+  const compressImage = (file: File): Promise<Blob | File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1000;
+          const MAX_HEIGHT = 1000;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                resolve(file); // fallback
+              }
+            },
+            'image/jpeg',
+            0.75
+          );
+        };
+      };
+    });
+  };
+
   // Upload file to Supabase storage bucket `product-images`
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
@@ -112,14 +160,15 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${slotIndex}.${fileExt}`;
+      // Compress the image file before uploading
+      const compressedBlob = await compressImage(file);
+      const fileName = `${Date.now()}-${slotIndex}.jpeg`; // Save as JPEG
       const filePath = `products/${fileName}`;
 
       const { data, error } = await supabase.storage
         .from('product-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
+        .upload(filePath, compressedBlob, {
+          cacheControl: '31536000', // Cache for 1 year
           upsert: true,
         });
 
