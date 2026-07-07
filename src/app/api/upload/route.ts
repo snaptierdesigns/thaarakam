@@ -22,9 +22,62 @@ export async function POST(request: Request) {
 
     console.log(`Processing upload for ${fileName} (${buffer.length} bytes)...`);
 
+    // METHOD 1: ImgBB (Owner API option, if key is present in environment variables)
+    const imgbbKey = process.env.IMGBB_API_KEY;
+    if (imgbbKey) {
+      console.log('ImgBB API key detected. Attempting upload to ImgBB...');
+      try {
+        const imgbbForm = new FormData();
+        imgbbForm.append('image', fileData); // ImgBB accepts base64 strings directly
+
+        const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+          method: 'POST',
+          body: imgbbForm,
+        });
+
+        if (imgbbResponse.ok) {
+          const imgbbJson = await imgbbResponse.json();
+          if (imgbbJson.success && imgbbJson.data && imgbbJson.data.url) {
+            console.log('ImgBB upload successful:', imgbbJson.data.url);
+            return NextResponse.json({ url: imgbbJson.data.url });
+          }
+        }
+        console.warn(`ImgBB upload failed with status: ${imgbbResponse.status}. Trying fallbacks...`);
+      } catch (imgbbErr) {
+        console.error('ImgBB upload exception:', imgbbErr);
+      }
+    }
+
+    // METHOD 2: Telegra.ph (Telegram CDN, keyless and extremely stable on Vercel US/EU nodes)
+    console.log(`Attempting image upload (${fileName}) to Telegra.ph...`);
+    try {
+      const tgForm = new FormData();
+      tgForm.append('file', blobObject, fileName);
+
+      const tgResponse = await fetch('https://telegra.ph/upload', {
+        method: 'POST',
+        body: tgForm,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        }
+      });
+
+      if (tgResponse.ok) {
+        const tgJson = await tgResponse.json();
+        if (Array.isArray(tgJson) && tgJson[0] && tgJson[0].src) {
+          const fileUrl = 'https://telegra.ph' + tgJson[0].src;
+          console.log('Telegra.ph upload successful:', fileUrl);
+          return NextResponse.json({ url: fileUrl });
+        }
+      }
+      console.warn(`Telegra.ph upload failed with status: ${tgResponse.status}. Trying Catbox...`);
+    } catch (tgErr) {
+      console.error('Telegra.ph upload exception, trying Catbox:', tgErr);
+    }
+
+    // METHOD 3: Catbox (Safety net fallback)
     console.log(`Attempting image upload (${fileName}) to Catbox...`);
     try {
-      // Build standard FormData object - fetch will automatically set the correct headers and boundaries
       const catboxForm = new FormData();
       catboxForm.append('reqtype', 'fileupload');
       catboxForm.append('fileToUpload', blobObject, fileName);
@@ -44,42 +97,12 @@ export async function POST(request: Request) {
           return NextResponse.json({ url: imageUrl.trim() });
         }
       }
-      
-      console.warn(`Catbox upload failed with status: ${catResponse.status}. Triggering PixelDrain fallback...`);
+      console.error(`Catbox upload failed with status: ${catResponse.status}`);
     } catch (catErr) {
-      console.error('Catbox upload exception, triggering PixelDrain fallback:', catErr);
+      console.error('Catbox upload exception:', catErr);
     }
 
-    // FALLBACK: Upload to PixelDrain
-    console.log(`Attempting fallback image upload (${fileName}) to PixelDrain...`);
-    try {
-      // Build standard FormData object for PixelDrain
-      const pdForm = new FormData();
-      pdForm.append('file', blobObject, fileName);
-
-      const pdResponse = await fetch('https://pixeldrain.com/api/file', {
-        method: 'POST',
-        body: pdForm,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        }
-      });
-
-      if (pdResponse.ok) {
-        const pdJson = await pdResponse.json();
-        if (pdJson.success && pdJson.id) {
-          const fileUrl = `https://pixeldrain.com/api/file/${pdJson.id}`;
-          console.log('PixelDrain fallback upload successful:', fileUrl);
-          return NextResponse.json({ url: fileUrl });
-        }
-      }
-      
-      console.error(`PixelDrain upload failed with status: ${pdResponse.status}`);
-      return NextResponse.json({ error: `Upload servers failed (Catbox/PixelDrain)` }, { status: 500 });
-    } catch (pdErr: any) {
-      console.error('PixelDrain upload exception:', pdErr);
-      return NextResponse.json({ error: pdErr?.message || 'Failed to upload to fallback server' }, { status: 500 });
-    }
+    return NextResponse.json({ error: 'All upload methods failed. Please try a smaller image or configure IMGBB_API_KEY.' }, { status: 500 });
   } catch (err: any) {
     console.error('Upload route error:', err);
     return NextResponse.json({ error: err?.message || 'Server upload failure' }, { status: 500 });
