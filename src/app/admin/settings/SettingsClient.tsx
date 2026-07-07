@@ -49,7 +49,61 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     }));
   };
 
-  // Upload logo directly to Supabase storage bucket `thaarakam-assets`
+  // Resizes and compresses very large images client-side to fit Vercel's 4.5MB limit while keeping crystal-clear quality
+  const compressImageIfLarge = (file: File): Promise<Blob | File> => {
+    return new Promise((resolve) => {
+      // If file is already under 3.5 MB, upload the original file directly to keep 100% original quality
+      if (file.size < 3.5 * 1024 * 1024) {
+        resolve(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 2000; // 2K resolution (extremely high quality)
+          const MAX_HEIGHT = 2000;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                resolve(file); // fallback
+              }
+            },
+            'image/jpeg',
+            0.88 // 88% quality (completely artifact-free)
+          );
+        };
+      };
+    });
+  };
+
+  // Upload logo directly to Catbox CDN via server proxy (bypasses Supabase & CORS)
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -59,26 +113,27 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     setStatus(null);
 
     try {
+      const processedFile = await compressImageIfLarge(file);
       const formData = new FormData();
-      formData.append('reqtype', 'fileupload');
-      formData.append('fileToUpload', file);
+      formData.append('fileToUpload', processedFile);
 
-      // Perform upload to Catbox API
-      const response = await fetch('https://catbox.moe/user/api.php', {
+      // Perform upload to our own server API proxy
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed with status ${response.status}`);
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error || `Upload failed with status ${response.status}`);
       }
 
-      const publicUrl = await response.text();
-      if (!publicUrl || !publicUrl.startsWith('http')) {
-        throw new Error(publicUrl || 'Failed to upload logo');
+      const resJson = await response.json();
+      if (!resJson.url) {
+        throw new Error('Failed to retrieve upload URL');
       }
 
-      setForm((prev) => ({ ...prev, logo_url: publicUrl.trim() }));
+      setForm((prev) => ({ ...prev, logo_url: resJson.url }));
       setStatus({ type: 'success', message: 'Logo uploaded successfully. Remember to save changes.' });
     } catch (err: any) {
       console.error('Logo upload error:', err);
