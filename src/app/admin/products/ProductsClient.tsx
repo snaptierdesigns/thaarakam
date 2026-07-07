@@ -182,34 +182,46 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       const processedFile = await compressImageIfLarge(file);
       const base64Data = await convertToBase64(processedFile);
 
-      // Perform upload to our own server API proxy
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fileData: base64Data,
-          fileName: file.name,
-          fileType: file.type,
-        }),
-      });
+      try {
+        // Perform upload to our own server API proxy
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileData: base64Data,
+            fileName: file.name,
+            fileType: file.type,
+          }),
+        });
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error || `Upload failed with status ${response.status}`);
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          throw new Error(errJson.error || `Upload failed with status ${response.status}`);
+        }
+
+        const resJson = await response.json();
+        if (!resJson.url) {
+          throw new Error('Failed to retrieve upload URL');
+        }
+
+        setFormImages((prev) => {
+          const next = [...prev];
+          next[slotIndex] = resJson.url;
+          return next;
+        });
+      } catch (uploadErr) {
+        console.warn('Network upload failed, falling back to local base64 storage:', uploadErr);
+        // Temporary/Safety fix: Store the image as an inline base64 Data URI directly in the database
+        const dataUri = `data:${file.type || 'image/jpeg'};base64,${base64Data}`;
+        setFormImages((prev) => {
+          const next = [...prev];
+          next[slotIndex] = dataUri;
+          return next;
+        });
+        setStatus({ type: 'success', message: 'Uploader down. Image saved using local database fallback.' });
       }
-
-      const resJson = await response.json();
-      if (!resJson.url) {
-        throw new Error('Failed to retrieve upload URL');
-      }
-
-      setFormImages((prev) => {
-        const next = [...prev];
-        next[slotIndex] = resJson.url;
-        return next;
-      });
     } catch (err: any) {
       console.error('Image upload failed:', err);
       setStatus({ type: 'error', message: err?.message || 'Failed to upload image' });
