@@ -54,13 +54,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         (item) => item.product.id === product.id && item.selectedSize === selectedSize
       );
 
+      const hasStockLimit = product.stock_count !== null && product.stock_count !== undefined && !product.is_preorder;
+      const currentQty = existingItemIndex > -1 ? prevCart[existingItemIndex].quantity : 0;
+      const maxAllowed = hasStockLimit ? (product.stock_count ?? 999) : 999;
+      const targetQty = Math.min(maxAllowed, currentQty + quantity);
+
       if (existingItemIndex > -1) {
         const newCart = [...prevCart];
-        newCart[existingItemIndex].quantity += quantity;
+        newCart[existingItemIndex].quantity = targetQty;
         return newCart;
       }
 
-      return [...prevCart, { product, quantity, selectedSize }];
+      return [...prevCart, { product, quantity: targetQty, selectedSize }];
     });
   };
 
@@ -77,11 +82,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.product.id === productId && item.selectedSize === selectedSize
-          ? { ...item, quantity }
-          : item
-      )
+      prevCart.map((item) => {
+        if (item.product.id === productId && item.selectedSize === selectedSize) {
+          const hasStockLimit = item.product.stock_count !== null && item.product.stock_count !== undefined && !item.product.is_preorder;
+          const maxAllowed = hasStockLimit ? (item.product.stock_count ?? 999) : 999;
+          const targetQty = Math.min(maxAllowed, quantity);
+          return { ...item, quantity: targetQty };
+        }
+        return item;
+      })
     );
   };
 

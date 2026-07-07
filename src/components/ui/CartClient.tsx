@@ -263,7 +263,8 @@ export default function CartClient({ settings }: CartClientProps) {
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.selectedSize, item.quantity + 1)}
-                          className="p-1 text-secondary hover:text-foreground transition-all"
+                          disabled={!item.product.is_preorder && item.product.stock_count !== null && item.product.stock_count !== undefined && item.quantity >= item.product.stock_count}
+                          className="p-1 text-secondary hover:text-foreground disabled:opacity-30 disabled:hover:text-secondary transition-all"
                           aria-label="Increase quantity"
                         >
                           <Plus className="h-3 w-3" />
