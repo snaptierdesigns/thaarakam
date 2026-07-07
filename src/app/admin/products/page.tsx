@@ -11,6 +11,7 @@ async function getProducts() {
     const { data, error } = await supabase
       .from('products')
       .select('*')
+      .neq('name', 'General Store Review Placeholder')
       .order('created_at', { ascending: false });
 
     if (error) {

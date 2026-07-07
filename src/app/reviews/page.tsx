@@ -247,7 +247,8 @@ export default function ReviewsPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-6 max-h-[750px] overflow-y-auto pr-2 scrollbar-thin">
                   {filteredReviews.map((review) => {
-                    const relatedProduct = review.product_id ? products[review.product_id] : null;
+                    const rawProduct = review.product_id ? products[review.product_id] : null;
+                    const relatedProduct = rawProduct && rawProduct.name !== 'General Store Review Placeholder' ? rawProduct : null;
 
                     return (
                       <div

@@ -22,12 +22,14 @@ async function getHomepageData() {
       .from('products')
       .select('*')
       .eq('is_featured', true)
+      .neq('name', 'General Store Review Placeholder')
       .order('created_at', { ascending: false })
       .limit(4);
 
     const newArrivalsPromise = supabase
       .from('products')
       .select('*')
+      .neq('name', 'General Store Review Placeholder')
       .order('created_at', { ascending: false })
       .limit(4);
 

@@ -174,6 +174,46 @@ export async function deleteReview(reviewId: string) {
 export async function addReviewByAdmin(reviewData: any) {
   try {
     const admin = getSupabaseAdmin();
+    let finalProductId = reviewData.product_id;
+
+    if (!finalProductId) {
+      // Find or create the placeholder product for general reviews
+      const { data: placeholder, error: fetchErr } = await admin
+        .from('products')
+        .select('id')
+        .eq('name', 'General Store Review Placeholder')
+        .maybeSingle();
+
+      if (placeholder) {
+        finalProductId = placeholder.id;
+      } else {
+        const { data: newPlaceholder, error: createErr } = await admin
+          .from('products')
+          .insert([
+            {
+              name: 'General Store Review Placeholder',
+              price: 0,
+              category: 'General',
+              images: ['/images/placeholder.jpg'],
+              description: 'Placeholder product to link general store reviews.',
+              stock_count: 0,
+              availability: 'out_of_stock',
+              is_featured: false,
+              requires_size: false,
+              is_preorder: false
+            }
+          ])
+          .select('id')
+          .single();
+
+        if (createErr || !newPlaceholder) {
+          console.error('Error creating general review placeholder:', createErr);
+          return { success: false, error: 'Database constraint error: product_id cannot be null' };
+        }
+        finalProductId = newPlaceholder.id;
+      }
+    }
+
     const { data, error } = await admin
       .from('reviews')
       .insert([
@@ -181,7 +221,7 @@ export async function addReviewByAdmin(reviewData: any) {
           reviewer_name: reviewData.reviewer_name,
           rating: Number(reviewData.rating),
           comment: reviewData.comment,
-          product_id: reviewData.product_id || null
+          product_id: finalProductId
         }
       ])
       .select();

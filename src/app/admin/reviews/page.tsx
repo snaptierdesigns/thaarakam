@@ -37,6 +37,7 @@ export default function AdminReviewsPage() {
         const { data: productsData } = await supabase
           .from('products')
           .select('*')
+          .neq('name', 'General Store Review Placeholder')
           .order('name');
 
         if (productsData) {
@@ -277,7 +278,7 @@ export default function AdminReviewsPage() {
                             </div>
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-secondary max-w-[150px] truncate">
-                            {prod ? prod.name : <span className="italic text-[10px] text-secondary/60">General Store</span>}
+                            {prod && prod.name !== 'General Store Review Placeholder' ? prod.name : <span className="italic text-[10px] text-secondary/60">General Store</span>}
                           </td>
                           <td className="px-4 py-4 text-secondary max-w-[250px] truncate" title={r.comment}>
                             {r.comment}
