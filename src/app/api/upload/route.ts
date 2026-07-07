@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+// Image upload API route handler supporting ImgBB and Telegra.ph fallbacks
 export async function POST(request: Request) {
   try {
     const { fileData, fileName: rawFileName, fileType } = await request.json();
