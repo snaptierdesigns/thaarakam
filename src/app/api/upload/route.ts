@@ -2,47 +2,37 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('fileToUpload') as File;
+    const { fileData, fileName: rawFileName, fileType } = await request.json();
     
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!fileData) {
+      return NextResponse.json({ error: 'No file data provided' }, { status: 400 });
     }
 
     // Ensure the filename has a valid image extension, otherwise uploaders reject
-    let fileName = file.name || 'image.jpg';
+    let fileName = rawFileName || 'image.jpg';
     if (!/\.(jpg|jpeg|png|gif|webp)$/i.test(fileName)) {
       fileName = 'image.jpg';
     }
 
-    // Convert file to array buffer first
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Decode Base64 string to a binary buffer
+    const buffer = Buffer.from(fileData, 'base64');
+    
+    // Construct standard Web Blob on the server
+    const blobObject = new Blob([buffer], { type: fileType || 'image/jpeg' });
+
+    console.log(`Processing upload for ${fileName} (${buffer.length} bytes)...`);
 
     console.log(`Attempting image upload (${fileName}) to Catbox...`);
     try {
-      // Construct Catbox multipart form body manually as a Web Blob (compatible with Next.js fetch polyfill)
-      const catBoundary = '----WebKitFormBoundaryCat' + Math.random().toString(36).substring(2);
-      const catHeader = 
-        `--${catBoundary}\r\n` +
-        `Content-Disposition: form-data; name="reqtype"\r\n\r\n` +
-        `fileupload\r\n` +
-        `--${catBoundary}\r\n` +
-        `Content-Disposition: form-data; name="fileToUpload"; filename="${fileName}"\r\n` +
-        `Content-Type: ${file.type || 'image/jpeg'}\r\n\r\n`;
-      const catFooter = `\r\n--${catBoundary}--\r\n`;
-
-      const catBody = new Blob([
-        Buffer.from(catHeader, 'utf-8'),
-        buffer,
-        Buffer.from(catFooter, 'utf-8')
-      ], { type: `multipart/form-data; boundary=${catBoundary}` });
+      // Build standard FormData object - fetch will automatically set the correct headers and boundaries
+      const catboxForm = new FormData();
+      catboxForm.append('reqtype', 'fileupload');
+      catboxForm.append('fileToUpload', blobObject, fileName);
 
       const catResponse = await fetch('https://catbox.moe/user/api.php', {
         method: 'POST',
-        body: catBody,
+        body: catboxForm,
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${catBoundary}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         }
       });
@@ -63,25 +53,14 @@ export async function POST(request: Request) {
     // FALLBACK: Upload to PixelDrain
     console.log(`Attempting fallback image upload (${fileName}) to PixelDrain...`);
     try {
-      // Construct PixelDrain multipart form body manually as a Web Blob (compatible with Next.js fetch polyfill)
-      const pdBoundary = '----WebKitFormBoundaryPD' + Math.random().toString(36).substring(2);
-      const pdHeader = 
-        `--${pdBoundary}\r\n` +
-        `Content-Disposition: form-data; name="file"; filename="${fileName}"\r\n` +
-        `Content-Type: ${file.type || 'image/jpeg'}\r\n\r\n`;
-      const pdFooter = `\r\n--${pdBoundary}--\r\n`;
-
-      const pdBody = new Blob([
-        Buffer.from(pdHeader, 'utf-8'),
-        buffer,
-        Buffer.from(pdFooter, 'utf-8')
-      ], { type: `multipart/form-data; boundary=${pdBoundary}` });
+      // Build standard FormData object for PixelDrain
+      const pdForm = new FormData();
+      pdForm.append('file', blobObject, fileName);
 
       const pdResponse = await fetch('https://pixeldrain.com/api/file', {
         method: 'POST',
-        body: pdBody,
+        body: pdForm,
         headers: {
-          'Content-Type': `multipart/form-data; boundary=${pdBoundary}`,
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         }
       });
