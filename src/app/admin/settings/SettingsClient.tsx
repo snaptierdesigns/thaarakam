@@ -52,8 +52,8 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
   // Resizes and compresses very large images client-side to fit Vercel's 4.5MB limit while keeping crystal-clear quality
   const compressImageIfLarge = (file: File): Promise<Blob | File> => {
     return new Promise((resolve) => {
-      // If file is already under 3.5 MB, upload the original file directly to keep 100% original quality
-      if (file.size < 3.5 * 1024 * 1024) {
+      // If file is already under 2.0 MB, upload the original file directly to keep 100% original quality
+      if (file.size < 2.0 * 1024 * 1024) {
         resolve(file);
         return;
       }
@@ -103,6 +103,19 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     });
   };
 
+  // Convert File/Blob object to base64 string
+  const convertToBase64 = (file: Blob | File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // Upload logo directly to Catbox CDN via server proxy (bypasses Supabase & CORS)
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -114,13 +127,19 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
 
     try {
       const processedFile = await compressImageIfLarge(file);
-      const formData = new FormData();
-      formData.append('fileToUpload', processedFile);
+      const base64Data = await convertToBase64(processedFile);
 
       // Perform upload to our own server API proxy
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileData: base64Data,
+          fileName: file.name,
+          fileType: file.type,
+        }),
       });
 
       if (!response.ok) {
