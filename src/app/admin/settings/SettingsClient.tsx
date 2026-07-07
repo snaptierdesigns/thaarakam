@@ -59,28 +59,26 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     setStatus(null);
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `logo-${Date.now()}.${fileExt}`;
-      const filePath = `settings/${fileName}`;
+      const formData = new FormData();
+      formData.append('reqtype', 'fileupload');
+      formData.append('fileToUpload', file);
 
-      // Upload file to Supabase storage bucket
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-        });
+      // Perform upload to Catbox API
+      const response = await fetch('https://catbox.moe/user/api.php', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
       }
 
-      // Retrieve public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
+      const publicUrl = await response.text();
+      if (!publicUrl || !publicUrl.startsWith('http')) {
+        throw new Error(publicUrl || 'Failed to upload logo');
+      }
 
-      setForm((prev) => ({ ...prev, logo_url: publicUrl }));
+      setForm((prev) => ({ ...prev, logo_url: publicUrl.trim() }));
       setStatus({ type: 'success', message: 'Logo uploaded successfully. Remember to save changes.' });
     } catch (err: any) {
       console.error('Logo upload error:', err);

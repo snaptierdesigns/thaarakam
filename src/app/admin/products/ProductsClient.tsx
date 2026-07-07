@@ -102,55 +102,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     }
   };
 
-  // Compress image client-side to maximum 1000px and 75% quality before upload
-  const compressImage = (file: File): Promise<Blob | File> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = (event) => {
-        const img = new window.Image();
-        img.src = event.target?.result as string;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1000;
-          const MAX_HEIGHT = 1000;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob);
-              } else {
-                resolve(file); // fallback
-              }
-            },
-            'image/jpeg',
-            0.75
-          );
-        };
-      };
-    });
-  };
-
-  // Upload file to Supabase storage bucket `product-images`
+  // Upload file to Catbox CDN (completely free image hosting, bypasses Supabase Storage)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -160,28 +112,28 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      // Compress the image file before uploading
-      const compressedBlob = await compressImage(file);
-      const fileName = `${Date.now()}-${slotIndex}.jpeg`; // Save as JPEG
-      const filePath = `products/${fileName}`;
+      const formData = new FormData();
+      formData.append('reqtype', 'fileupload');
+      formData.append('fileToUpload', file);
 
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, compressedBlob, {
-          cacheControl: '31536000', // Cache for 1 year
-          upsert: true,
-        });
+      // Perform upload to Catbox API
+      const response = await fetch('https://catbox.moe/user/api.php', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
+      const imageUrl = await response.text();
+      if (!imageUrl || !imageUrl.startsWith('http')) {
+        throw new Error(imageUrl || 'Failed to upload image');
+      }
 
       setFormImages((prev) => {
         const next = [...prev];
-        next[slotIndex] = publicUrl;
+        next[slotIndex] = imageUrl.trim();
         return next;
       });
     } catch (err: any) {
