@@ -90,7 +90,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     }
   };
 
-  const images = product.images.length > 0 ? product.images : ['/images/placeholder.jpg'];
+  const images = (product.images && product.images.length > 0) ? product.images : ['/images/placeholder.jpg'];
   const isOutOfStock = product.availability === 'out_of_stock';
   const isPreorder = product.is_preorder;
   const canAddToCart = !isOutOfStock || isPreorder;

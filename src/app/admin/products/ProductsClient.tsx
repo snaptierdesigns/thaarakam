@@ -169,6 +169,45 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     });
   };
 
+  // Compress image aggressively for local DB storage to prevent Next.js serialization size limit crashes (~30KB)
+  const compressImageForLocalDb = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 600; // Small resolution for database storage
+          const MAX_HEIGHT = 600;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.60); // 60% quality
+          resolve(dataUrl);
+        };
+      };
+    });
+  };
+
   // Upload file via local server proxy using Base64 JSON (completely foolproof, bypasses Vercel FormData bugs)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
@@ -213,11 +252,11 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         });
       } catch (uploadErr) {
         console.warn('Network upload failed, falling back to local base64 storage:', uploadErr);
-        // Temporary/Safety fix: Store the image as an inline base64 Data URI directly in the database
-        const dataUri = `data:${file.type || 'image/jpeg'};base64,${base64Data}`;
+        // Temporary/Safety fix: Store the image as an inline compressed base64 Data URI directly in the database
+        const smallDataUri = await compressImageForLocalDb(file);
         setFormImages((prev) => {
           const next = [...prev];
-          next[slotIndex] = dataUri;
+          next[slotIndex] = smallDataUri;
           return next;
         });
         setStatus({ type: 'success', message: 'Uploader down. Image saved using local database fallback.' });

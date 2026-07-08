@@ -28,12 +28,15 @@ export async function POST(request: Request) {
     if (imgbbKey) {
       console.log('ImgBB API key detected. Attempting upload to ImgBB...');
       try {
-        const imgbbForm = new FormData();
-        imgbbForm.append('image', fileData); // ImgBB accepts base64 strings directly
+        const bodyParams = new URLSearchParams();
+        bodyParams.append('image', fileData); // ImgBB accepts base64 strings directly
 
         const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
           method: 'POST',
-          body: imgbbForm,
+          body: bodyParams,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          }
         });
 
         if (imgbbResponse.ok) {
