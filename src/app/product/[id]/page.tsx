@@ -6,8 +6,8 @@ import ProductDetailsClient from './ProductDetailsClient';
 import { supabase } from '@/lib/supabase';
 import { Product, Settings } from '@/types';
 
-// Enable Incremental Static Regeneration (ISR) to cache product details on CDN Edge for 5 minutes
-export const revalidate = 300;
+// Enable Incremental Static Regeneration (ISR) to cache product details on CDN Edge for 24 hours (updates are still instant via on-demand revalidation)
+export const revalidate = 86400;
 
 type Params = Promise<{ id: string }>;
 

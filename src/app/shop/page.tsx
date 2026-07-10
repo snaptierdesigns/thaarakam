@@ -5,8 +5,8 @@ import ShopClient from './ShopClient';
 import { supabase, logSupabaseError } from '@/lib/supabase';
 import { Product } from '@/types';
 
-// Enable Incremental Static Regeneration (ISR) to cache catalog on CDN Edge for 5 minutes
-export const revalidate = 300;
+// Enable Incremental Static Regeneration (ISR) to cache catalog on CDN Edge for 24 hours (updates are still instant via on-demand revalidation)
+export const revalidate = 86400;
 
 async function getProducts() {
   try {

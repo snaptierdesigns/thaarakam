@@ -7,8 +7,8 @@ import { supabase, logSupabaseError } from '@/lib/supabase';
 import { Product, Settings, CATEGORIES } from '@/types';
 import { Search, Gem, Heart } from 'lucide-react';
 
-// Enable Incremental Static Regeneration (ISR) to cache homepage on CDN Edge for 5 minutes
-export const revalidate = 300;
+// Enable Incremental Static Regeneration (ISR) to cache homepage on CDN Edge for 24 hours (updates are still instant via on-demand revalidation)
+export const revalidate = 86400;
 
 async function getHomepageData() {
   try {
