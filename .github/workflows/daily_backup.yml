@@ -1,0 +1,43 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight UTC (5:30 AM IST)
+  workflow_dispatch: # Allows you to trigger the backup manually from GitHub Actions tab
+
+permissions:
+  contents: write # Grants permission to commit the backup JSON files back to the repository
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-size: '18'
+
+      - name: Install Supabase Client
+        run: npm install @supabase/supabase-js
+
+      - name: Run Backup Script
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/daily_backup.js
+
+      - name: Commit and Push Backups
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add backups/
+          if git diff --staged --quiet; then
+            echo "No database changes detected since last backup."
+          else
+            git commit -m "chore: daily database backup [skip ci]"
+            git push
+          fi
