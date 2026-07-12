@@ -1,5 +1,163 @@
 [
   {
+    "id": "51c2b394-3d75-4087-95c4-242baa11421e",
+    "name": "Scarlet Halo Combo",
+    "price": 320,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/DHFCp0Hd/a1036a00e2ee.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "out_of_stock",
+    "stock_count": 0,
+    "created_at": "2026-07-11T12:36:28.986397+00:00"
+  },
+  {
+    "id": "ef7286b7-d555-44b7-ae27-45a8bbabf7da",
+    "name": "Crimson Petal Combo",
+    "price": 320,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/CK5ghTKc/816adcba188b.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 2,
+    "created_at": "2026-07-11T12:35:50.407486+00:00"
+  },
+  {
+    "id": "0fb49855-4f08-41b5-be56-4949ffb64ea9",
+    "name": "Orchard Vine Combo",
+    "price": 320,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/PGH6R00Y/edd5f6da09b1.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 2,
+    "created_at": "2026-07-11T12:35:09.663076+00:00"
+  },
+  {
+    "id": "90847a8d-76a6-45e3-90db-041d292f7752",
+    "name": "Cherry blossom combo ",
+    "price": 320,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/5hJjHfRm/b54867c344a4.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-11T12:34:13.784786+00:00"
+  },
+  {
+    "id": "c0a9a1ab-8e20-4bb5-88d5-79846a8ade3a",
+    "name": "Round snake chain ",
+    "price": 499,
+    "category": "Men's Accessories",
+    "images": [
+      "https://i.ibb.co/3yQbKGB4/2b97866536ff.jpg",
+      "https://i.ibb.co/XkZnCkzd/4cf50081e59b.jpg",
+      "https://i.ibb.co/Q7d6S7w7/605322b5a16b.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 10,
+    "created_at": "2026-07-11T11:25:37.509498+00:00"
+  },
+  {
+    "id": "4cf84bab-729a-4cc5-90fa-29fef7fbe094",
+    "name": "Flat snake chain (22 inch)",
+    "price": 499,
+    "category": "Men's Accessories",
+    "images": [
+      "https://i.ibb.co/F48VGdRm/64746f6668b5.jpg",
+      "https://i.ibb.co/5hw9GdW5/616261710320.jpg",
+      "https://i.ibb.co/tPFBCQL9/8f814c7f3bed.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 10,
+    "created_at": "2026-07-11T11:22:33.674661+00:00"
+  },
+  {
+    "id": "d6258e62-aeef-43b4-8e01-6b8ebef4a2ac",
+    "name": "Round snake chain (24 inches )",
+    "price": 720,
+    "category": "Men's Accessories",
+    "images": [
+      "https://i.ibb.co/nsH1dbHm/40d484fcaf9c.jpg",
+      "https://i.ibb.co/7MTsqYR/71bd1dc94f1a.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-11T11:06:52.19026+00:00"
+  },
+  {
+    "id": "fc85ddd2-efba-42f3-89f0-f19ff97cc455",
+    "name": "The slim men’s Kada ",
+    "price": 420,
+    "category": "Men's Accessories",
+    "images": [
+      "https://i.ibb.co/Dgw01snw/b205316b6202.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-11T05:35:19.003609+00:00"
+  },
+  {
+    "id": "879c3b59-af82-448e-8c4d-ed1df4a7b6b5",
+    "name": "Linear men’s Kada ",
+    "price": 420,
+    "category": "Men's Accessories",
+    "images": [
+      "https://i.ibb.co/ksBP0fry/6de62e64605d.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-11T05:33:30.264158+00:00"
+  },
+  {
     "id": "c0c4f959-6793-4097-83e4-5cee9f403ddb",
     "name": "Aura Drop Earring",
     "price": 490,
@@ -459,7 +617,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 4,
+    "stock_count": 3,
     "created_at": "2026-07-10T20:22:24.410882+00:00"
   },
   {
@@ -502,8 +660,9 @@
     "price": 720,
     "category": "Men's Accessories",
     "images": [
-      "/images/products/1783423123122-0.jpeg",
-      "/images/products/1783423129036-1.jpeg"
+      "https://i.ibb.co/jPFCYd6N/d7f33e3da0b8.jpg",
+      "https://i.ibb.co/v66d8PrY/c85c6c7d3bd5.jpg",
+      "https://i.ibb.co/qL8gsB2k/92c3003a184c.jpg"
     ],
     "description": "Length 55 to 56 cm \nLight weight\nLast upto 3+ years ",
     "is_featured": false,
@@ -520,8 +679,9 @@
     "price": 720,
     "category": "Men's Accessories",
     "images": [
-      "/images/products/1783423061190-0.jpeg",
-      "/images/products/1783423070697-1.jpeg"
+      "https://i.ibb.co/GQfYXssB/c2edb752c9a5.jpg",
+      "/images/products/1783423070697-1.jpeg",
+      "https://i.ibb.co/Mx89cJLJ/bcb0a68db9ba.jpg"
     ],
     "description": "Length 55 to 56 cm \nLight weight\nLast upto 3+ years ",
     "is_featured": false,
@@ -538,7 +698,7 @@
     "price": 720,
     "category": "Men's Accessories",
     "images": [
-      "/images/products/1783422997303-0.jpeg",
+      "https://i.ibb.co/HfSnSs2H/204dbeadcac7.jpg",
       "/images/products/1783423005466-1.jpeg",
       "/images/products/1783423012340-2.jpeg"
     ],
@@ -557,8 +717,9 @@
     "price": 720,
     "category": "Men's Accessories",
     "images": [
-      "/images/products/1783422929668-0.jpeg",
-      "/images/products/1783422933273-1.jpeg"
+      "https://i.ibb.co/hJM6qR0Z/1c4c113cf193.jpg",
+      "/images/products/1783422933273-1.jpeg",
+      "https://i.ibb.co/yKXCK3c/15bfcf4a4b2b.jpg"
     ],
     "description": "Length 55 to 56 cm \nLight weight\nLast upto 3+ years ",
     "is_featured": false,
@@ -575,8 +736,9 @@
     "price": 720,
     "category": "Men's Accessories",
     "images": [
-      "/images/products/1783422845495-0.jpeg",
-      "/images/products/1783422849733-1.jpeg"
+      "https://i.ibb.co/wrrJH9Ns/4c41872df9f7.jpg",
+      "/images/products/1783422849733-1.jpeg",
+      "https://i.ibb.co/JRZ7VGHn/b2b9ec5e826f.jpg"
     ],
     "description": "Length 55 to 56 cm \nLight weight\nLast upto 3+ years ",
     "is_featured": false,
@@ -618,7 +780,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 6,
+    "stock_count": 5,
     "created_at": "2026-07-04T17:54:53.312907+00:00"
   },
   {
@@ -740,7 +902,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 1,
     "created_at": "2026-07-04T04:42:31.795854+00:00"
   },
   {
@@ -756,8 +918,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "out_of_stock",
-    "stock_count": 10,
+    "availability": "in_stock",
+    "stock_count": 6,
     "created_at": "2026-07-03T18:47:02.526734+00:00"
   },
   {
@@ -911,8 +1073,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 3,
     "created_at": "2026-07-03T13:39:30.714013+00:00"
   },
   {
@@ -1321,7 +1483,7 @@
     "max_size": null,
     "is_preorder": true,
     "availability": "out_of_stock",
-    "stock_count": 3,
+    "stock_count": 0,
     "created_at": "2026-07-02T21:48:51.588094+00:00"
   },
   {
@@ -1491,7 +1653,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 8,
     "created_at": "2026-07-02T21:23:14.815296+00:00"
   },
   {
@@ -2069,7 +2231,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 11,
+    "stock_count": 10,
     "created_at": "2026-07-02T19:58:30.767393+00:00"
   },
   {
@@ -2085,8 +2247,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "out_of_stock",
-    "stock_count": 7,
+    "availability": "in_stock",
+    "stock_count": 3,
     "created_at": "2026-07-02T19:48:49.834068+00:00"
   },
   {
@@ -2575,7 +2737,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 13,
+    "stock_count": 9,
     "created_at": "2026-07-02T18:30:00.026762+00:00"
   },
   {
@@ -2610,8 +2772,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 2,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T18:26:59.541471+00:00"
   },
   {
@@ -2663,7 +2825,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 12,
+    "stock_count": 10,
     "created_at": "2026-07-02T18:22:19.20001+00:00"
   },
   {
@@ -2715,7 +2877,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 5,
+    "stock_count": 3,
     "created_at": "2026-07-01T06:16:45.957023+00:00"
   }
 ]
