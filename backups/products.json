@@ -1,5 +1,107 @@
 [
   {
+    "id": "8fe6bd9f-4b62-4e8b-991a-01c99a718ab5",
+    "name": "Golden Petals Studs",
+    "price": 310,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/mPKBPfN/7cd9dcf29ca8.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-13T11:32:53.634119+00:00"
+  },
+  {
+    "id": "d7a5cbec-5bb2-440d-9ca0-13fcecea904f",
+    "name": "Everyday Spark Studs",
+    "price": 299,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/rKXJZJJd/e3afcc1500bd.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-13T11:31:59.158538+00:00"
+  },
+  {
+    "id": "1c4daa64-dab1-4563-8d00-859b2eedcb46",
+    "name": "Bloom Kiss Studs",
+    "price": 320,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/N2F8jBTh/8e8d365121b2.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 1,
+    "created_at": "2026-07-13T11:30:59.759708+00:00"
+  },
+  {
+    "id": "89a73194-27b8-4833-871b-8eff81f2b69f",
+    "name": "Dainty Flora Studs",
+    "price": 299,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/XrtdVmGH/a457ab53ab40.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 2,
+    "created_at": "2026-07-13T11:30:09.284302+00:00"
+  },
+  {
+    "id": "bcb67457-8db6-4aa4-82a2-3053fe05811f",
+    "name": "Lumi Studs",
+    "price": 299,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/whGJrc1x/f1b1b1d6ca77.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 4,
+    "created_at": "2026-07-13T11:29:19.660048+00:00"
+  },
+  {
+    "id": "6babc5ca-6b9b-4995-b04f-43622bf32875",
+    "name": "Petite Bloom Studs",
+    "price": 360,
+    "category": "Earrings & Studs",
+    "images": [
+      "https://i.ibb.co/qM7dxvrd/6136d9fb47d3.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 3,
+    "created_at": "2026-07-13T11:26:43.900067+00:00"
+  },
+  {
     "id": "4c513226-fa6f-4060-bcdd-63c2d01421d1",
     "name": "Aura Pave Bracelet ",
     "price": 380,
@@ -444,7 +546,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-11T12:35:09.663076+00:00"
   },
   {
@@ -568,7 +670,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 6,
+    "stock_count": 5,
     "created_at": "2026-07-10T21:09:39.076239+00:00"
   },
   {
@@ -739,7 +841,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 6,
+    "stock_count": 5,
     "created_at": "2026-07-10T20:47:42.021364+00:00"
   },
   {
@@ -1047,8 +1149,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-07T21:13:29.347999+00:00"
   },
   {
@@ -1105,7 +1207,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 9,
     "created_at": "2026-07-07T11:16:55.591462+00:00"
   },
   {
@@ -1507,7 +1609,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-03T10:26:31.405106+00:00"
   },
   {
@@ -1720,8 +1822,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T22:05:47.827771+00:00"
   },
   {
@@ -1808,7 +1910,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-02T21:55:53.678665+00:00"
   },
   {
@@ -2645,7 +2747,7 @@
     "max_size": null,
     "is_preorder": true,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 2,
     "created_at": "2026-07-02T19:48:49.834068+00:00"
   },
   {
@@ -3152,7 +3254,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 1,
     "created_at": "2026-07-02T18:28:46.713788+00:00"
   },
   {
@@ -3273,8 +3375,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-01T06:16:45.957023+00:00"
   }
 ]
