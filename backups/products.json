@@ -29,8 +29,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-13T11:31:59.158538+00:00"
   },
   {
@@ -46,8 +46,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-13T11:30:59.759708+00:00"
   },
   {
@@ -512,7 +512,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-11T12:36:28.986397+00:00"
   },
   {
@@ -635,8 +635,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-11T05:35:19.003609+00:00"
   },
   {
@@ -1010,8 +1010,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-10T20:32:56.099141+00:00"
   },
   {
@@ -1714,8 +1714,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-03T06:46:11.158508+00:00"
   },
   {
@@ -2558,7 +2558,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-02T20:13:36.569382+00:00"
   },
   {
@@ -2574,8 +2574,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T20:12:19.340595+00:00"
   },
   {
@@ -2730,7 +2730,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 9,
     "created_at": "2026-07-02T19:58:30.767393+00:00"
   },
   {
@@ -2763,8 +2763,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "out_of_stock",
-    "stock_count": 9,
+    "availability": "in_stock",
+    "stock_count": 6,
     "created_at": "2026-07-02T19:45:42.492718+00:00"
   },
   {
@@ -2965,8 +2965,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T19:01:05.004192+00:00"
   },
   {
@@ -3324,7 +3324,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 9,
+    "stock_count": 7,
     "created_at": "2026-07-02T18:22:19.20001+00:00"
   },
   {
@@ -3375,8 +3375,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-01T06:16:45.957023+00:00"
   }
 ]
