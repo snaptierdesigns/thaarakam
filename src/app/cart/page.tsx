@@ -5,8 +5,8 @@ import CartClient from '@/components/ui/CartClient';
 import { supabase } from '@/lib/supabase';
 import { Settings } from '@/types';
 
-// Force dynamic rendering to load fresh database content
-export const revalidate = 0;
+// Enable 24-hour caching (updates are revalidated instantly when settings change)
+export const revalidate = 86400;
 
 async function getSettings() {
   try {

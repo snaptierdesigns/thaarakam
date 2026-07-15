@@ -15,6 +15,24 @@ interface ProductPageProps {
   params: Params;
 }
 
+// Pre-render all product pages at build time to make them static and reduce Vercel serverless usage
+export async function generateStaticParams() {
+  try {
+    const { data: products } = await supabase
+      .from('products')
+      .select('id');
+
+    if (!products) return [];
+
+    return products.map((product) => ({
+      id: product.id,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
+}
+
 async function getProductData(id: string) {
   try {
     const productPromise = supabase

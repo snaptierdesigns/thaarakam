@@ -48,6 +48,7 @@ export async function updateStoreSettings(settingsData: Partial<Settings>) {
 
     revalidatePath('/');
     revalidatePath('/shop');
+    revalidatePath('/cart');
     return { success: true };
   } catch (error: any) {
     console.error('Unexpected error updating settings:', error);
