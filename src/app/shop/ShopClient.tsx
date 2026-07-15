@@ -10,12 +10,37 @@ interface ShopClientProps {
   products: Product[];
 }
 
+// Helper to fix category parameters truncated by social media/in-app browsers (e.g., splitting on '&')
+function normalizeCategory(param: string | null): string | null {
+  if (!param) return null;
+  
+  const decoded = decodeURIComponent(param).trim().toLowerCase();
+
+  // 1. Direct match (case-insensitive)
+  const exactMatch = CATEGORIES.find(c => c.toLowerCase() === decoded);
+  if (exactMatch) return exactMatch;
+
+  // 2. Specific cut-off cases due to Android/Instagram URL parameter splitting on '&'
+  if (decoded === 'earrings') {
+    return 'Earrings & Studs';
+  }
+  if (decoded === 'nose rings') {
+    return 'Nose Rings & Nose Pins';
+  }
+
+  // 3. Prefix/Fuzzy match (for split URLs or truncated strings)
+  const prefixMatch = CATEGORIES.find(c => c.toLowerCase().startsWith(decoded));
+  if (prefixMatch) return prefixMatch;
+
+  return param;
+}
+
 export default function ShopClient({ products }: ShopClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   
   // Read category from URL params if present
-  const categoryParam = searchParams.get('category');
+  const categoryParam = normalizeCategory(searchParams.get('category'));
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
