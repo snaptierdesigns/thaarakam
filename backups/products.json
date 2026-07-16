@@ -545,8 +545,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-11T12:35:09.663076+00:00"
   },
   {
@@ -582,7 +582,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 9,
     "created_at": "2026-07-11T11:25:37.509498+00:00"
   },
   {
@@ -601,7 +601,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 9,
     "created_at": "2026-07-11T11:22:33.674661+00:00"
   },
   {
@@ -2032,8 +2032,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "out_of_stock",
-    "stock_count": 10,
+    "availability": "in_stock",
+    "stock_count": 7,
     "created_at": "2026-07-02T21:37:45.612986+00:00"
   },
   {
@@ -2118,7 +2118,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 11,
+    "stock_count": 10,
     "created_at": "2026-07-02T21:25:16.336267+00:00"
   },
   {
@@ -2523,7 +2523,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 5,
+    "stock_count": 4,
     "created_at": "2026-07-02T20:20:53.272329+00:00"
   },
   {
@@ -2730,7 +2730,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 9,
+    "stock_count": 8,
     "created_at": "2026-07-02T19:58:30.767393+00:00"
   },
   {
@@ -2764,7 +2764,7 @@
     "max_size": null,
     "is_preorder": true,
     "availability": "in_stock",
-    "stock_count": 6,
+    "stock_count": 5,
     "created_at": "2026-07-02T19:45:42.492718+00:00"
   },
   {
@@ -2965,8 +2965,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 2,
     "created_at": "2026-07-02T19:01:05.004192+00:00"
   },
   {
@@ -3058,7 +3058,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-02T18:53:20.748002+00:00"
   },
   {
@@ -3324,7 +3324,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 7,
+    "stock_count": 4,
     "created_at": "2026-07-02T18:22:19.20001+00:00"
   },
   {
