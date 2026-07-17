@@ -29,8 +29,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-13T11:31:59.158538+00:00"
   },
   {
@@ -81,7 +81,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 4,
+    "stock_count": 3,
     "created_at": "2026-07-13T11:29:19.660048+00:00"
   },
   {
@@ -117,7 +117,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-12T12:07:47.14836+00:00"
   },
   {
@@ -422,8 +422,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-12T09:36:30.357848+00:00"
   },
   {
@@ -773,7 +773,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-10T20:57:36.398395+00:00"
   },
   {
@@ -841,7 +841,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 5,
+    "stock_count": 4,
     "created_at": "2026-07-10T20:47:42.021364+00:00"
   },
   {
@@ -909,7 +909,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 1,
     "created_at": "2026-07-10T20:42:11.938998+00:00"
   },
   {
@@ -1045,7 +1045,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 9,
     "created_at": "2026-07-10T20:30:10.708051+00:00"
   },
   {
@@ -1057,7 +1057,7 @@
       "https://i.ibb.co/Swv608yh/129a2eb92ba6.jpg"
     ],
     "description": null,
-    "is_featured": false,
+    "is_featured": true,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
@@ -1400,8 +1400,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 3,
     "created_at": "2026-07-04T04:42:31.795854+00:00"
   },
   {
@@ -1520,8 +1520,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-03T14:54:49.815491+00:00"
   },
   {
@@ -2028,12 +2028,12 @@
       "/images/products/1783027956091-0.jpeg"
     ],
     "description": "7mm gold ring with 3mm white stone stud \n\nHow to measure \n\nMeasure your ear\nUse a small ruler or flexible measuring tape.\nMeasure from the piercing hole to the edge of your ear where the ring will sit.\nDouble that distance and add about 1–2 mm for a comfortable fit.",
-    "is_featured": false,
+    "is_featured": true,
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "in_stock",
-    "stock_count": 7,
+    "availability": "out_of_stock",
+    "stock_count": null,
     "created_at": "2026-07-02T21:37:45.612986+00:00"
   },
   {
@@ -2187,8 +2187,8 @@
     "requires_size": true,
     "max_size": 6,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T21:09:17.312656+00:00"
   },
   {
@@ -2553,7 +2553,7 @@
       "/images/products/1783023180549-1.jpeg"
     ],
     "description": "Length 18”",
-    "is_featured": true,
+    "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
@@ -2730,7 +2730,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 8,
+    "stock_count": 7,
     "created_at": "2026-07-02T19:58:30.767393+00:00"
   },
   {
@@ -3319,7 +3319,7 @@
       "/images/products/1783016495711-1.jpeg"
     ],
     "description": null,
-    "is_featured": false,
+    "is_featured": true,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
@@ -3375,8 +3375,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-01T06:16:45.957023+00:00"
   }
 ]
