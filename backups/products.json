@@ -1,5 +1,23 @@
 [
   {
+    "id": "8d3e97d6-5b15-44a9-839b-7c9b36253e0c",
+    "name": "Lux layered Anklets ",
+    "price": 830,
+    "category": "Anklets",
+    "images": [
+      "https://i.ibb.co/KxzGQMvJ/ef3b5ce4ab98.jpg",
+      "https://i.ibb.co/nTgvRyK/14b686a18e77.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 5,
+    "created_at": "2026-07-18T13:05:19.614132+00:00"
+  },
+  {
     "id": "bd094d7e-0810-46d9-b41f-c630cfea2c26",
     "name": "Ruby blossom neckchain ",
     "price": 499,
@@ -774,7 +792,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 5,
+    "stock_count": 4,
     "created_at": "2026-07-10T21:02:18.533927+00:00"
   },
   {
@@ -808,8 +826,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-10T20:57:36.398395+00:00"
   },
   {
@@ -995,8 +1013,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-10T20:36:48.746454+00:00"
   },
   {
@@ -1081,7 +1099,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 8,
+    "stock_count": 7,
     "created_at": "2026-07-10T20:30:10.708051+00:00"
   },
   {
@@ -1152,7 +1170,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 2,
     "created_at": "2026-07-10T20:22:24.410882+00:00"
   },
   {
@@ -1315,7 +1333,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 5,
+    "stock_count": 3,
     "created_at": "2026-07-04T17:54:53.312907+00:00"
   },
   {
@@ -1609,7 +1627,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 1,
     "created_at": "2026-07-03T13:39:30.714013+00:00"
   },
   {
@@ -2678,8 +2696,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 2,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T20:06:21.253317+00:00"
   },
   {
@@ -3360,7 +3378,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 4,
+    "stock_count": 2,
     "created_at": "2026-07-02T18:22:19.20001+00:00"
   },
   {
@@ -3411,8 +3429,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-01T06:16:45.957023+00:00"
   }
 ]
