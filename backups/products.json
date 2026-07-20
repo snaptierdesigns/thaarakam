@@ -1,5 +1,78 @@
 [
   {
+    "id": "93f87133-ead6-400a-b3af-640f864f72c8",
+    "name": "Slim Chain Anklet (Thick)",
+    "price": 680,
+    "category": "Anklets",
+    "images": [
+      "https://i.ibb.co/Pv1BKBnd/8046050239a6.jpg",
+      "https://i.ibb.co/nMJF8pwD/49d78285c5b6.jpg",
+      "https://i.ibb.co/S1Fnqmv/02c68c4ee926.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": false,
+    "max_size": null,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 6,
+    "created_at": "2026-07-19T15:14:33.539385+00:00"
+  },
+  {
+    "id": "74091a73-fc9a-41f1-9b5c-b67783c63ebe",
+    "name": "Minimal solitaire ring ",
+    "price": 399,
+    "category": "Rings",
+    "images": [
+      "https://i.ibb.co/hFVWd1QT/6c38ea50ed24.jpg",
+      "https://i.ibb.co/JWYPR1Mq/65cade780719.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": true,
+    "max_size": 8,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 4,
+    "created_at": "2026-07-19T14:21:26.680803+00:00"
+  },
+  {
+    "id": "279d92e9-c04a-45d4-9582-d2c015802794",
+    "name": "Criss cross ring ",
+    "price": 430,
+    "category": "Rings",
+    "images": [
+      "https://i.ibb.co/3y50Wznv/1853963dee3f.jpg",
+      "https://i.ibb.co/JWYPR1Mq/65cade780719.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": true,
+    "max_size": 8,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 3,
+    "created_at": "2026-07-19T14:20:27.693293+00:00"
+  },
+  {
+    "id": "23c05dab-9e8e-413b-850e-a7b1e10cc103",
+    "name": "Twisted solitaire ring ",
+    "price": 410,
+    "category": "Rings",
+    "images": [
+      "https://i.ibb.co/CpRTs1hN/7b4eea46291e.jpg",
+      "https://i.ibb.co/JWYPR1Mq/65cade780719.jpg"
+    ],
+    "description": null,
+    "is_featured": false,
+    "requires_size": true,
+    "max_size": 8,
+    "is_preorder": false,
+    "availability": "in_stock",
+    "stock_count": 4,
+    "created_at": "2026-07-19T14:19:34.219856+00:00"
+  },
+  {
     "id": "8d3e97d6-5b15-44a9-839b-7c9b36253e0c",
     "name": "Lux layered Anklets ",
     "price": 830,
@@ -83,8 +156,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-13T11:31:59.158538+00:00"
   },
   {
@@ -565,8 +638,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-11T12:36:28.986397+00:00"
   },
   {
@@ -826,8 +899,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-10T20:57:36.398395+00:00"
   },
   {
@@ -844,7 +917,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-10T20:55:14.525732+00:00"
   },
   {
@@ -1048,7 +1121,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-10T20:33:25.568387+00:00"
   },
   {
@@ -1116,7 +1189,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 8,
     "created_at": "2026-07-10T20:29:42.746729+00:00"
   },
   {
@@ -1133,7 +1206,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 10,
+    "stock_count": 8,
     "created_at": "2026-07-10T20:29:10.542346+00:00"
   },
   {
@@ -1333,7 +1406,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 2,
     "created_at": "2026-07-04T17:54:53.312907+00:00"
   },
   {
@@ -1840,8 +1913,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 10,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-02T22:09:52.580757+00:00"
   },
   {
@@ -1963,8 +2036,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T21:55:53.678665+00:00"
   },
   {
@@ -1998,9 +2071,9 @@
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
-    "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 10,
+    "is_preorder": true,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-02T21:53:40.178277+00:00"
   },
   {
@@ -2233,7 +2306,7 @@
     "price": 439,
     "category": "Rings",
     "images": [
-      "/images/products/1783026530553-0.jpeg",
+      "https://i.ibb.co/ZzcKkjjp/4c5beb930bc8.jpg",
       "/images/products/1783026535544-1.png"
     ],
     "description": "Available size 6 \n\nHow to Measure\n\nWrap a strip of paper around your finger.\nMark where the ends meet.\nMeasure the length in mm.\nMatch it with the Finger Circumference in the chart above.\nTip: If you're between two sizes, choose the larger size for a more comfortable fit.",
@@ -2241,8 +2314,8 @@
     "requires_size": true,
     "max_size": 6,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-02T21:09:17.312656+00:00"
   },
   {
@@ -2251,8 +2324,8 @@
     "price": 459,
     "category": "Rings",
     "images": [
-      "/images/products/1783026371635-0.jpeg",
-      "/images/products/1783026378472-1.png"
+      "https://i.ibb.co/G3fHCVqP/7cbc7480f9ef.jpg",
+      "https://i.ibb.co/JWYPR1Mq/65cade780719.jpg"
     ],
     "description": "Available size. 6 \n\n\nHow to Measure\n\nWrap a strip of paper around your finger.\nMark where the ends meet.\nMeasure the length in mm.\nMatch it with the Finger Circumference in the chart above.\nTip: If you're between two sizes, choose the larger size for a more comfortable fit.",
     "is_featured": false,
@@ -2269,7 +2342,7 @@
     "price": 459,
     "category": "Rings",
     "images": [
-      "/images/products/1783026272666-0.jpeg",
+      "https://i.ibb.co/KjtQxwnV/59ba75a64167.jpg",
       "/images/products/1783026277072-1.png"
     ],
     "description": "Available size 6\n\n\nHow to Measure\n\nWrap a strip of paper around your finger.\nMark where the ends meet.\nMeasure the length in mm.\nMatch it with the Finger Circumference in the chart above.\nTip: If you're between two sizes, choose the larger size for a more comfortable fit.",
@@ -2305,7 +2378,7 @@
     "price": 439,
     "category": "Rings",
     "images": [
-      "/images/products/1783026018462-0.jpeg",
+      "https://i.ibb.co/TDRcyqq6/0d5eb55a36f4.jpg",
       "/images/products/1783026023175-1.png"
     ],
     "description": "Available size 6 \n\nHow to Measure\n\nWrap a strip of paper around your finger.\nMark where the ends meet.\nMeasure the length in mm.\nMatch it with the Finger Circumference in the chart above.\nTip: If you're between two sizes, choose the larger size for a more comfortable fit.",
@@ -2341,7 +2414,7 @@
     "price": 439,
     "category": "Rings",
     "images": [
-      "/images/products/1783025666141-0.jpeg",
+      "https://i.ibb.co/mVR4BZDP/214ad944fbdd.jpg",
       "/images/products/1783025894330-1.png"
     ],
     "description": "Available size 6 \n\nHow to Measure\n\nWrap a strip of paper around your finger.\nMark where the ends meet.\nMeasure the length in mm.\nMatch it with the Finger Circumference in the chart above.\nTip: If you're between two sizes, choose the larger size for a more comfortable fit.",
@@ -3290,7 +3363,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 8,
+    "stock_count": 7,
     "created_at": "2026-07-02T18:30:00.026762+00:00"
   },
   {
@@ -3377,8 +3450,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 2,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T18:22:19.20001+00:00"
   },
   {
