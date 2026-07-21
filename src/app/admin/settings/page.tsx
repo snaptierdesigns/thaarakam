@@ -3,8 +3,8 @@ import SettingsClient from './SettingsClient';
 import { supabase } from '@/lib/supabase';
 import { Settings } from '@/types';
 
-// Force dynamic rendering to load fresh configurations
-export const revalidate = 0;
+// Enable static export caching for admin settings page
+export const revalidate = 86400;
 
 async function getSettings() {
   try {

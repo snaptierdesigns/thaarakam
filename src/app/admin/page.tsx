@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { LayoutDashboard, ShoppingBag, Tag, CheckCircle2, AlertTriangle, Clock, Plus, Eye } from 'lucide-react';
 
-// Force dynamic rendering to load fresh statistics
-export const revalidate = 0;
+// Enable static export caching for admin dashboard
+export const revalidate = 86400;
 
 async function getDashboardStats() {
   try {

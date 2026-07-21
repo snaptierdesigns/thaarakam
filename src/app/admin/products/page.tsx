@@ -3,8 +3,8 @@ import ProductsClient from './ProductsClient';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 
-// Force dynamic rendering to load fresh configurations
-export const revalidate = 0;
+// Enable static export caching for admin products page
+export const revalidate = 86400;
 
 async function getProducts() {
   try {

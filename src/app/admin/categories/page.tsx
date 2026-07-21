@@ -4,8 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { CATEGORIES } from '@/types';
 import { Eye, Layers } from 'lucide-react';
 
-// Force dynamic rendering to load fresh configurations
-export const revalidate = 0;
+// Enable static export caching for admin categories page
+export const revalidate = 86400;
 
 async function getCategoryMetrics() {
   try {
