@@ -1,0 +1,13 @@
+# Cloudflare Pages Clean Static Routing Rules
+/admin /admin/ 301
+/admin/products /admin/products/ 301
+/admin/settings /admin/settings/ 301
+/admin/reviews /admin/reviews/ 301
+/admin/categories /admin/categories/ 301
+/admin/login /admin/login/ 301
+/shop /shop/ 301
+/cart /cart/ 301
+/contact /contact/ 301
+/privacy-policy /privacy-policy/ 301
+/return-policy /return-policy/ 301
+/shipping-policy /shipping-policy/ 301
