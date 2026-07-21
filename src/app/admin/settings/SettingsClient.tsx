@@ -2,8 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Settings } from '@/types';
-import { updateStoreSettings } from '../actions';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { Save, Upload, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface SettingsClientProps {
@@ -155,7 +154,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     });
   };
 
-  // Upload logo directly to Catbox CDN via server proxy (bypasses Supabase & CORS)
+  // Direct client-side logo upload to ImgBB (0% server CPU usage)
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -165,45 +164,33 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     setStatus(null);
 
     try {
-      const processedFile = await compressImageIfLarge(file);
-      const base64Data = await convertToBase64(processedFile);
+      const apiKey = 'd3905eac5d51cfab6cde5c943670d3e0';
+      const formData = new FormData();
+      formData.append('image', file);
 
-      try {
-        // Perform upload to our own server API proxy
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fileData: base64Data,
-            fileName: file.name,
-            fileType: file.type,
-          }),
-        });
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData,
+      });
 
-        if (!response.ok) {
-          const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson.error || `Upload failed with status ${response.status}`);
-        }
-
+      if (response.ok) {
         const resJson = await response.json();
-        if (!resJson.url) {
-          throw new Error('Failed to retrieve upload URL');
+        if (resJson.success && resJson.data && resJson.data.url) {
+          setForm((prev) => ({ ...prev, logo_url: resJson.data.url }));
+          setStatus({ type: 'success', message: 'Logo uploaded successfully. Remember to save changes.' });
+          return;
         }
-
-        setForm((prev) => ({ ...prev, logo_url: resJson.url }));
-        setStatus({ type: 'success', message: 'Logo uploaded successfully. Remember to save changes.' });
-      } catch (uploadErr) {
-        console.warn('Network upload failed, falling back to local base64 storage for logo:', uploadErr);
-        // Temporary/Safety fix: Store the logo as an inline compressed base64 Data URI directly in the database
-        const smallDataUri = await compressImageForLocalDb(file);
-        setForm((prev) => ({ ...prev, logo_url: smallDataUri }));
-        setStatus({ type: 'success', message: 'Uploader down. Logo saved using local database fallback. Remember to save changes.' });
       }
+
+      // Fallback: local compressed base64 if ImgBB fails
+      const smallDataUri = await compressImageForLocalDb(file);
+      setForm((prev) => ({ ...prev, logo_url: smallDataUri }));
+      setStatus({ type: 'success', message: 'Logo uploaded using local database backup. Remember to save changes.' });
     } catch (err: any) {
       console.error('Logo upload error:', err);
-      setStatus({ type: 'error', message: err?.message || 'Failed to upload logo.' });
+      // Fallback to local base64 on network exception
+      const smallDataUri = await compressImageForLocalDb(file);
+      setForm((prev) => ({ ...prev, logo_url: smallDataUri }));
     } finally {
       setUploadingLogo(false);
     }
@@ -213,6 +200,7 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     setForm((prev) => ({ ...prev, logo_url: '' }));
   };
 
+  // Direct client-side store settings update (0% server CPU usage)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -232,15 +220,20 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
         logo_url: logoUrlBase ? `${logoUrlBase}#scale=${logoScale}` : `#scale=${logoScale}`
       };
       
-      const res = await updateStoreSettings(updatedForm);
-      if (res.success) {
+      const admin = getSupabaseAdmin();
+      const { error } = await admin
+        .from('settings')
+        .update(updatedForm)
+        .eq('id', 1);
+
+      if (!error) {
         setStatus({ type: 'success', message: 'Store settings updated successfully!' });
       } else {
-        setStatus({ type: 'error', message: res.error || 'Failed to update settings.' });
+        setStatus({ type: 'error', message: error.message || 'Failed to update settings.' });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: 'An unexpected error occurred.' });
+      setStatus({ type: 'error', message: err?.message || 'An unexpected error occurred.' });
     } finally {
       setSaving(false);
     }

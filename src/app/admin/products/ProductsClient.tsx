@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product, CATEGORIES } from '@/types';
-import { saveProduct, deleteProduct } from '../actions';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { Search, Plus, Trash2, Edit, Upload, X, ArrowLeft, Save, Star, RefreshCw, Layers } from 'lucide-react';
 
 interface ProductsClientProps {
@@ -208,7 +207,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     });
   };
 
-  // Upload file via local server proxy using Base64 JSON (completely foolproof, bypasses Vercel FormData bugs)
+  // Direct client-side ImgBB upload (0% server CPU usage)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -218,52 +217,44 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      const processedFile = await compressImageIfLarge(file);
-      const base64Data = await convertToBase64(processedFile);
+      const apiKey = 'd3905eac5d51cfab6cde5c943670d3e0';
+      const formData = new FormData();
+      formData.append('image', file);
 
-      try {
-        // Perform upload to our own server API proxy
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            fileData: base64Data,
-            fileName: file.name,
-            fileType: file.type,
-          }),
-        });
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: 'POST',
+        body: formData,
+      });
 
-        if (!response.ok) {
-          const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson.error || `Upload failed with status ${response.status}`);
-        }
-
+      if (response.ok) {
         const resJson = await response.json();
-        if (!resJson.url) {
-          throw new Error('Failed to retrieve upload URL');
+        if (resJson.success && resJson.data && resJson.data.url) {
+          setFormImages((prev) => {
+            const next = [...prev];
+            next[slotIndex] = resJson.data.url;
+            return next;
+          });
+          return;
         }
-
-        setFormImages((prev) => {
-          const next = [...prev];
-          next[slotIndex] = resJson.url;
-          return next;
-        });
-      } catch (uploadErr) {
-        console.warn('Network upload failed, falling back to local base64 storage:', uploadErr);
-        // Temporary/Safety fix: Store the image as an inline compressed base64 Data URI directly in the database
-        const smallDataUri = await compressImageForLocalDb(file);
-        setFormImages((prev) => {
-          const next = [...prev];
-          next[slotIndex] = smallDataUri;
-          return next;
-        });
-        setStatus({ type: 'success', message: 'Uploader down. Image saved using local database fallback.' });
       }
+
+      // Fallback: local compressed base64 if ImgBB fails
+      const smallDataUri = await compressImageForLocalDb(file);
+      setFormImages((prev) => {
+        const next = [...prev];
+        next[slotIndex] = smallDataUri;
+        return next;
+      });
+      setStatus({ type: 'success', message: 'Image uploaded using local database backup.' });
     } catch (err: any) {
       console.error('Image upload failed:', err);
-      setStatus({ type: 'error', message: err?.message || 'Failed to upload image' });
+      // Fallback to local base64 on network exception
+      const smallDataUri = await compressImageForLocalDb(file);
+      setFormImages((prev) => {
+        const next = [...prev];
+        next[slotIndex] = smallDataUri;
+        return next;
+      });
     } finally {
       setUploadingIndex(null);
     }
@@ -273,14 +264,20 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormImages((prev) => prev.filter((_, idx) => idx !== slotIndex));
   };
 
+  // Direct client-side product deletion (0% server CPU usage)
   const handleDeleteProductClick = async (productId: string, productName: string) => {
     if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
       try {
-        const res = await deleteProduct(productId);
-        if (res.success) {
-          router.refresh();
+        const admin = getSupabaseAdmin();
+        const { error } = await admin
+          .from('products')
+          .delete()
+          .eq('id', productId);
+
+        if (error) {
+          alert(error.message || 'Failed to delete product.');
         } else {
-          alert(res.error || 'Failed to delete product.');
+          window.location.reload();
         }
       } catch (err) {
         console.error(err);
@@ -289,6 +286,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     }
   };
 
+  // Direct client-side product save/update (0% server CPU usage)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
@@ -329,25 +327,35 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         stock_count: parsedStock,
       };
 
-      const res = await saveProduct(payload, editingProduct?.id);
-      if (res.success) {
+      const admin = getSupabaseAdmin();
+      let res;
+      if (editingProduct?.id) {
+        res = await admin
+          .from('products')
+          .update(payload)
+          .eq('id', editingProduct.id);
+      } else {
+        res = await admin
+          .from('products')
+          .insert([payload]);
+      }
+
+      if (!res.error) {
         setStatus({
           type: 'success',
           message: editingProduct ? 'Product updated successfully!' : 'Product added successfully!',
         });
         
-        // Wait briefly then redirect back to list
         setTimeout(() => {
-          router.refresh();
-          handleBackToList();
-        }, 1500);
+          window.location.reload();
+        }, 1200);
       } else {
-        setStatus({ type: 'error', message: res.error || 'Failed to save product.' });
+        setStatus({ type: 'error', message: res.error.message || 'Failed to save product.' });
         setSaving(false);
       }
     } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: err?.message || 'Server error' });
+      setStatus({ type: 'error', message: err?.message || 'Error saving product' });
       setSaving(false);
     }
   };
