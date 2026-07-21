@@ -1,38 +1,36 @@
-'use server';
-
-import { cookies } from 'next/headers';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin, supabase } from '@/lib/supabase';
 import { Settings } from '@/types';
-import { revalidatePath } from 'next/cache';
 
-// Admin Login Server Action
+// Admin Login helper
 export async function loginAdmin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
   const expectedEmail = 'anjuharikrishnan95@gmail.com';
   const expectedPassword = 'adminadmin';
 
   if (email.trim().toLowerCase() === expectedEmail && password === expectedPassword) {
-    const cookieStore = await cookies();
-    cookieStore.set('thaarakam_admin_session', 'authenticated', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 1 week session
-    });
+    if (typeof document !== 'undefined') {
+      document.cookie = "thaarakam_admin_session=authenticated; path=/; max-age=604800; SameSite=Lax";
+      try {
+        localStorage.setItem('thaarakam_admin_session', 'authenticated');
+      } catch (e) {}
+    }
     return { success: true };
   }
 
   return { success: false, error: 'Incorrect email or password.' };
 }
 
-// Admin Logout Server Action
+// Admin Logout helper
 export async function logoutAdmin() {
-  const cookieStore = await cookies();
-  cookieStore.delete('thaarakam_admin_session');
+  if (typeof document !== 'undefined') {
+    document.cookie = "thaarakam_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    try {
+      localStorage.removeItem('thaarakam_admin_session');
+    } catch (e) {}
+  }
   return { success: true };
 }
 
-// Update settings
+// Update settings helper
 export async function updateStoreSettings(settingsData: Partial<Settings>) {
   try {
     const admin = getSupabaseAdmin();
@@ -46,22 +44,17 @@ export async function updateStoreSettings(settingsData: Partial<Settings>) {
       return { success: false, error: error.message };
     }
 
-    revalidatePath('/');
-    revalidatePath('/shop');
-    revalidatePath('/cart');
     return { success: true };
   } catch (error: any) {
-    console.error('Unexpected error updating settings:', error);
-    return { success: false, error: error?.message || 'Server error' };
+    return { success: false, error: error?.message || 'Error updating settings' };
   }
 }
 
-// Insert or Update Product
+// Insert or Update Product helper
 export async function saveProduct(productData: any, productId?: string) {
   try {
     const admin = getSupabaseAdmin();
     
-    // Ensure numbers are properly typed
     const payload = {
       name: productData.name,
       price: Number(productData.price),
@@ -87,9 +80,6 @@ export async function saveProduct(productData: any, productId?: string) {
         console.error('Error updating product:', error);
         return { success: false, error: error.message };
       }
-      
-      revalidatePath('/shop');
-      revalidatePath(`/product/${productId}`);
       return { success: true, data };
     } else {
       const { data, error } = await admin
@@ -101,11 +91,6 @@ export async function saveProduct(productData: any, productId?: string) {
         console.error('Error inserting product:', error);
         return { success: false, error: error.message };
       }
-
-      revalidatePath('/shop');
-      if (data?.[0]?.id) {
-        revalidatePath(`/product/${data[0].id}`);
-      }
       return { success: true, data };
     }
   } catch (error: any) {
@@ -114,7 +99,7 @@ export async function saveProduct(productData: any, productId?: string) {
   }
 }
 
-// Delete Product
+// Delete Product helper
 export async function deleteProduct(productId: string) {
   try {
     const admin = getSupabaseAdmin();
@@ -128,8 +113,6 @@ export async function deleteProduct(productId: string) {
       return { success: false, error: error.message };
     }
 
-    revalidatePath('/shop');
-    revalidatePath(`/product/${productId}`);
     return { success: true };
   } catch (error: any) {
     console.error('Unexpected error deleting product:', error);
@@ -137,19 +120,36 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-// Revalidate product cache from client components
-export async function revalidateProductDetails(id: string) {
+// Add Review By Admin helper
+export async function addReviewByAdmin(reviewData: {
+  product_id?: string | null;
+  reviewer_name: string;
+  rating: number;
+  comment?: string;
+}) {
   try {
-    revalidatePath('/shop');
-    revalidatePath(`/product/${id}`);
-    return { success: true };
-  } catch (err) {
-    console.error('Failed to revalidate path:', err);
-    return { success: false };
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin
+      .from('reviews')
+      .insert([{
+        product_id: reviewData.product_id || null,
+        reviewer_name: reviewData.reviewer_name,
+        rating: Number(reviewData.rating),
+        comment: reviewData.comment || '',
+        is_verified: true,
+      }])
+      .select();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Failed to add review' };
   }
 }
 
-// Delete review from dashboard
+// Delete Review helper
 export async function deleteReview(reviewId: string) {
   try {
     const admin = getSupabaseAdmin();
@@ -159,133 +159,41 @@ export async function deleteReview(reviewId: string) {
       .eq('id', reviewId);
 
     if (error) {
-      console.error('Error deleting review:', error);
       return { success: false, error: error.message };
     }
-
-    revalidatePath('/reviews');
     return { success: true };
-  } catch (error: any) {
-    console.error('Unexpected error deleting review:', error);
-    return { success: false, error: error?.message || 'Server error' };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Failed to delete review' };
   }
 }
 
-// Add verified review from dashboard
-export async function addReviewByAdmin(reviewData: any) {
-  try {
-    const admin = getSupabaseAdmin();
-    let finalProductId = reviewData.product_id;
-
-    if (!finalProductId) {
-      // Find or create the placeholder product for general reviews
-      const { data: placeholder, error: fetchErr } = await admin
-        .from('products')
-        .select('id')
-        .eq('name', 'General Store Review Placeholder')
-        .maybeSingle();
-
-      if (placeholder) {
-        finalProductId = placeholder.id;
-      } else {
-        const { data: newPlaceholder, error: createErr } = await admin
-          .from('products')
-          .insert([
-            {
-              name: 'General Store Review Placeholder',
-              price: 0,
-              category: 'General',
-              images: ['/images/placeholder.jpg'],
-              description: 'Placeholder product to link general store reviews.',
-              stock_count: 0,
-              availability: 'out_of_stock',
-              is_featured: false,
-              requires_size: false,
-              is_preorder: false
-            }
-          ])
-          .select('id')
-          .single();
-
-        if (createErr || !newPlaceholder) {
-          console.error('Error creating general review placeholder:', createErr);
-          return { success: false, error: 'Database constraint error: product_id cannot be null' };
-        }
-        finalProductId = newPlaceholder.id;
-      }
-    }
-
-    const { data, error } = await admin
-      .from('reviews')
-      .insert([
-        {
-          reviewer_name: reviewData.reviewer_name,
-          rating: Number(reviewData.rating),
-          comment: reviewData.comment,
-          product_id: finalProductId
-        }
-      ])
-      .select();
-
-    if (error) {
-      console.error('Error adding review:', error);
-      return { success: false, error: error.message };
-    }
-
-    revalidatePath('/reviews');
-    if (reviewData.product_id) {
-      revalidatePath(`/product/${reviewData.product_id}`);
-    }
-    return { success: true, data };
-  } catch (error: any) {
-    console.error('Unexpected error adding review:', error);
-    return { success: false, error: error?.message || 'Server error' };
-  }
-}
-
-// Securely decrement product stock on checkout (bypasses RLS via server-side admin client)
+// Decrement stock after checkout helper
 export async function decrementStockAfterCheckout(items: { id: string; quantity: number }[]) {
   try {
     const admin = getSupabaseAdmin();
-    
     for (const item of items) {
-      // Fetch fresh current stock from database to avoid stale-data race conditions
-      const { data: product, error: fetchError } = await admin
+      const { data: prod } = await supabase
         .from('products')
         .select('stock_count')
         .eq('id', item.id)
         .single();
-        
-      if (fetchError || !product) {
-        console.error(`Error fetching product ${item.id} for stock update:`, fetchError);
-        continue;
-      }
-      
-      if (product.stock_count !== null && product.stock_count !== undefined) {
-        const newStock = Math.max(0, product.stock_count - item.quantity);
-        const availability = newStock === 0 ? 'out_of_stock' : 'in_stock';
-        
-        const { error: updateError } = await admin
+
+      if (prod && prod.stock_count !== null && prod.stock_count !== undefined) {
+        const newStock = Math.max(0, prod.stock_count - item.quantity);
+        const newAvailability = newStock === 0 ? 'out_of_stock' : 'in_stock';
+
+        await admin
           .from('products')
           .update({
             stock_count: newStock,
-            availability: availability
+            availability: newAvailability,
           })
           .eq('id', item.id);
-          
-        if (updateError) {
-          console.error(`Error updating stock for product ${item.id}:`, updateError);
-        } else {
-          // Instantly purge edge CDN caches
-          revalidatePath('/shop');
-          revalidatePath(`/product/${item.id}`);
-          revalidatePath('/');
-        }
       }
     }
     return { success: true };
-  } catch (error: any) {
-    console.error('Unexpected error updating stock after checkout:', error);
-    return { success: false, error: error?.message || 'Server error' };
+  } catch (err: any) {
+    console.error('Stock decrement error:', err);
+    return { success: false, error: err?.message || 'Stock decrement error' };
   }
 }
