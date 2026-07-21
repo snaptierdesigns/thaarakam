@@ -43,6 +43,28 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const [formAvailability, setFormAvailability] = useState<'in_stock' | 'out_of_stock'>('in_stock');
   const [formStockCount, setFormStockCount] = useState<string>('10');
   
+  const [productsList, setProductsList] = useState<Product[]>(initialProducts);
+
+  const fetchFreshProducts = async () => {
+    try {
+      const admin = getSupabaseAdmin();
+      const { data } = await admin
+        .from('products')
+        .select('*')
+        .neq('name', 'General Store Review Placeholder')
+        .order('created_at', { ascending: false });
+      if (data) {
+        setProductsList(data as Product[]);
+      }
+    } catch (e) {
+      console.error('Error fetching fresh products:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchFreshProducts();
+  }, []);
+
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -277,7 +299,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         if (error) {
           alert(error.message || 'Failed to delete product.');
         } else {
-          window.location.reload();
+          await fetchFreshProducts();
         }
       } catch (err) {
         console.error(err);
@@ -346,9 +368,10 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           message: editingProduct ? 'Product updated successfully!' : 'Product added successfully!',
         });
         
+        await fetchFreshProducts();
         setTimeout(() => {
-          window.location.reload();
-        }, 1200);
+          handleBackToList();
+        }, 1000);
       } else {
         setStatus({ type: 'error', message: res.error.message || 'Failed to save product.' });
         setSaving(false);
@@ -361,7 +384,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   };
 
   // Client filtering
-  const filteredProducts = initialProducts.filter((product) => {
+  const filteredProducts = productsList.filter((product) => {
     const matchesSearch = searchQuery
       ? product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase())

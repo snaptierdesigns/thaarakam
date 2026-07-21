@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
 import { Product, CATEGORIES } from '@/types';
+import { supabase } from '@/lib/supabase';
 import { Search, X } from 'lucide-react';
 
 interface ShopClientProps {
@@ -39,16 +40,34 @@ export default function ShopClient({ products }: ShopClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  // Read category from URL params if present
   const categoryParam = normalizeCategory(searchParams.get('category'));
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoryParam);
+  const [productsList, setProductsList] = useState<Product[]>(products);
 
   // Sync category state with URL parameter changes
   useEffect(() => {
     setSelectedCategory(categoryParam);
   }, [categoryParam]);
+
+  // Fetch live products directly from Supabase on mount so all admin edits reflect in real time
+  useEffect(() => {
+    async function fetchLiveProducts() {
+      try {
+        const { data } = await supabase
+          .from('products')
+          .select('*')
+          .neq('name', 'General Store Review Placeholder')
+          .order('created_at', { ascending: false });
+        if (data && data.length > 0) {
+          setProductsList(data as Product[]);
+        }
+      } catch (e) {
+        console.error('Error fetching live products for Shop:', e);
+      }
+    }
+    fetchLiveProducts();
+  }, []);
 
   // Set category filter and update URL parameter
   const handleCategorySelect = (category: string | null) => {
@@ -69,7 +88,7 @@ export default function ShopClient({ products }: ShopClientProps) {
   };
 
   // Filter products based on search query and category selection
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = productsList.filter((product) => {
     const matchesCategory = selectedCategory
       ? product.category === selectedCategory
       : true;

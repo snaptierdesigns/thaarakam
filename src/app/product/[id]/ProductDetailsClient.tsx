@@ -15,10 +15,30 @@ interface ProductDetailsClientProps {
 
 export default function ProductDetailsClient({ product, defaultDescription }: ProductDetailsClientProps) {
   const { addToCart } = useCart();
+  const [currentProduct, setCurrentProduct] = useState<Product>(product);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedToCartFeedback, setAddedToCartFeedback] = useState(false);
+
+  // Fetch live product details on mount so price/stock edits reflect instantly
+  useEffect(() => {
+    async function fetchLiveProduct() {
+      try {
+        const { data } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', product.id)
+          .single();
+        if (data) {
+          setCurrentProduct(data as Product);
+        }
+      } catch (e) {
+        console.error('Error fetching live product details:', e);
+      }
+    }
+    fetchLiveProduct();
+  }, [product.id]);
 
   // Reviews State
   const [reviews, setReviews] = useState<any[]>([]);
@@ -90,16 +110,16 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     }
   };
 
-  const images = (product.images && product.images.length > 0) ? product.images : ['/images/placeholder.jpg'];
-  const isOutOfStock = product.availability === 'out_of_stock';
-  const isPreorder = product.is_preorder;
+  const images = (currentProduct.images && currentProduct.images.length > 0) ? currentProduct.images : ['/images/placeholder.jpg'];
+  const isOutOfStock = currentProduct.availability === 'out_of_stock';
+  const isPreorder = currentProduct.is_preorder;
   const canAddToCart = !isOutOfStock || isPreorder;
 
   // Generate sizes from 1 to max_size (if requires_size is true and max_size is set)
   const sizeOptions: number[] = [];
-  if (product.requires_size && product.max_size) {
-    for (let i = 1; i <= product.max_size; i++) {
-      sizeOptions.push(i);
+  if (currentProduct.requires_size && currentProduct.max_size) {
+    for (let s = 1; s <= currentProduct.max_size; s++) {
+      sizeOptions.push(s);
     }
   }
 
@@ -112,18 +132,18 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   // Assemble the description
   const fullDescription = [
     defaultDescription,
-    product.description
+    currentProduct.description
   ].filter(Boolean).join('\n\n* \n\n');
 
   // Handle Add to Cart action
   const handleAddToCart = () => {
     if (!canAddToCart) return;
-    if (product.requires_size && selectedSize === null) {
+    if (currentProduct.requires_size && selectedSize === null) {
       alert('Please select a size before adding to the cart.');
       return;
     }
 
-    addToCart(product, quantity, selectedSize);
+    addToCart(currentProduct, quantity, selectedSize);
     
     // Trigger visual button feedback
     setAddedToCartFeedback(true);
@@ -175,7 +195,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
 
             <Image
               src={images[activeImageIndex]}
-              alt={`${product.name} - View ${activeImageIndex + 1}`}
+              alt={`${currentProduct.name} - View ${activeImageIndex + 1}`}
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               className="object-cover object-center transition-all duration-300"
@@ -216,13 +236,13 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
           {/* Header Info */}
           <div className="flex flex-col gap-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-secondary">
-              {product.category}
+              {currentProduct.category}
             </span>
             <h1 className="text-2xl font-light tracking-wide text-foreground sm:text-3xl">
-              {product.name}
+              {currentProduct.name}
             </h1>
             <p className="text-xl font-semibold mt-1">
-              ₹{Number(product.price).toLocaleString('en-IN')}
+              ₹{Number(currentProduct.price).toLocaleString('en-IN')}
             </p>
           </div>
 
