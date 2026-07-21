@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     console.log(`Processing upload for ${fileName} (${buffer.length} bytes)...`);
 
     // METHOD 1: ImgBB (Owner API option, if key is present in environment variables)
-    const imgbbKey = process.env.IMGBB_API_KEY;
+    const DEFAULT_IMGBB_KEY = 'd3905eac5d51cfab6cde5c943670d3e0';
+    const imgbbKey = process.env.IMGBB_API_KEY || DEFAULT_IMGBB_KEY;
     if (imgbbKey) {
       console.log('ImgBB API key detected. Attempting upload to ImgBB...');
       try {
