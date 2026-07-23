@@ -262,7 +262,7 @@ export default function ReviewsPage() {
                             </span>
                             {relatedProduct ? (
                               <Link
-                                href={`/product/${relatedProduct.id}`}
+                                href={`/product/?id=${relatedProduct.id}`}
                                 className="text-[9px] font-semibold text-secondary hover:text-foreground transition-colors hover:underline"
                               >
                                 Verified Purchase: {relatedProduct.name}

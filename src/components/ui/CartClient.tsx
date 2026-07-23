@@ -218,7 +218,7 @@ export default function CartClient({ settings }: CartClientProps) {
                     <div className="flex justify-between text-sm">
                       <div>
                         <h3 className="font-medium text-foreground line-clamp-1">
-                          <Link href={`/product/${item.product.id}`} className="hover:opacity-85">
+                          <Link href={`/product/?id=${item.product.id}`} className="hover:opacity-85">
                             {item.product.name}
                           </Link>
                         </h3>

@@ -14,7 +14,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isLowStock = product.stock_count !== null && product.stock_count !== undefined && product.stock_count > 0 && product.stock_count <= 5;
 
   return (
-    <Link href={`/product/${product.id}`} className="group block">
+    <Link href={`/product/?id=${product.id}`} className="group block">
       <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-border/20 border border-border/40">
         
         {/* Badges */}
