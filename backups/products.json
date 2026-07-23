@@ -203,7 +203,7 @@
     "images": [
       "https://i.ibb.co/mPKBPfN/7cd9dcf29ca8.jpg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
@@ -294,7 +294,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 2,
     "created_at": "2026-07-13T11:26:43.900067+00:00"
   },
   {
@@ -312,8 +312,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-12T12:07:47.14836+00:00"
   },
   {
@@ -702,13 +702,13 @@
     "images": [
       "https://i.ibb.co/DHFCp0Hd/a1036a00e2ee.jpg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 2,
     "created_at": "2026-07-11T12:36:28.986397+00:00"
   },
   {
@@ -883,7 +883,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 4,
+    "stock_count": 1,
     "created_at": "2026-07-10T21:06:52.785105+00:00"
   },
   {
@@ -1241,7 +1241,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 7,
+    "stock_count": 6,
     "created_at": "2026-07-10T20:30:10.708051+00:00"
   },
   {
@@ -1403,7 +1403,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 3,
+    "stock_count": 2,
     "created_at": "2026-07-07T11:16:55.591462+00:00"
   },
   {
@@ -1782,13 +1782,13 @@
       "/images/products/1783085706593-1.jpeg",
       "/images/products/1783085711878-2.jpeg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 2,
     "created_at": "2026-07-03T13:35:15.370395+00:00"
   },
   {
@@ -1905,13 +1905,13 @@
       "/images/products/1783061083411-1.jpeg",
       "/images/products/1783061087207-2.jpeg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-03T06:46:11.158508+00:00"
   },
   {
@@ -2525,8 +2525,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 1,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T20:51:17.703694+00:00"
   },
   {
@@ -2838,8 +2838,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 1,
     "created_at": "2026-07-02T20:06:21.253317+00:00"
   },
   {
@@ -2926,7 +2926,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 7,
+    "stock_count": 6,
     "created_at": "2026-07-02T19:58:30.767393+00:00"
   },
   {
@@ -2959,8 +2959,8 @@
     "requires_size": false,
     "max_size": null,
     "is_preorder": true,
-    "availability": "in_stock",
-    "stock_count": 2,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-02T19:45:42.492718+00:00"
   },
   {
@@ -3162,7 +3162,7 @@
     "max_size": null,
     "is_preorder": false,
     "availability": "in_stock",
-    "stock_count": 2,
+    "stock_count": 1,
     "created_at": "2026-07-02T19:01:05.004192+00:00"
   },
   {
@@ -3230,13 +3230,13 @@
       "/images/products/1783018443312-0.jpeg",
       "/images/products/1783020447862-1.jpeg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "out_of_stock",
-    "stock_count": 0,
+    "availability": "in_stock",
+    "stock_count": 3,
     "created_at": "2026-07-02T18:55:43.959083+00:00"
   },
   {
