@@ -47,6 +47,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
   const fetchFreshProducts = async () => {
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('thaarakam_shop_cache');
+      }
       const admin = getSupabaseAdmin();
       const { data } = await admin
         .from('products')

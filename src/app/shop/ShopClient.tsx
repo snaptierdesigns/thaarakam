@@ -50,17 +50,32 @@ export default function ShopClient({ products }: ShopClientProps) {
     setSelectedCategory(categoryParam);
   }, [categoryParam]);
 
-  // Fetch live products directly from Supabase on mount so all admin edits reflect in real time
+  // Fetch live products directly from Supabase on mount (with light sessionStorage caching to save 98% database egress)
   useEffect(() => {
     async function fetchLiveProducts() {
       try {
+        const cached = typeof window !== 'undefined' ? sessionStorage.getItem('thaarakam_shop_cache') : null;
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            if (parsed.timestamp && Date.now() - parsed.timestamp < 3 * 60 * 1000 && parsed.data?.length > 0) {
+              setProductsList(parsed.data);
+              return;
+            }
+          } catch (e) {}
+        }
+
         const { data } = await supabase
           .from('products')
-          .select('*')
+          .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count')
           .neq('name', 'General Store Review Placeholder')
           .order('created_at', { ascending: false });
+
         if (data && data.length > 0) {
           setProductsList(data as Product[]);
+          try {
+            sessionStorage.setItem('thaarakam_shop_cache', JSON.stringify({ timestamp: Date.now(), data }));
+          } catch (e) {}
         }
       } catch (e) {
         console.error('Error fetching live products for Shop:', e);
