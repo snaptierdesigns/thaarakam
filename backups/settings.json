@@ -1,11 +1,13 @@
-{
-  "id": 1,
-  "business_name": "Thaarakam",
-  "logo_url": "/images/logo-1782997471466.png#scale=400",
-  "whatsapp_number": "918921356009",
-  "store_email": "anjuharikrishnan95@gmail.com",
-  "shipping_kerala": 50,
-  "shipping_south_india": 60,
-  "shipping_north_india": 80,
-  "default_description": "Details\r\n• Material: 316L Stainless Steel\r\n• Finish: Anti-tarnish, High Polish\r\n• Lightweight & comfortable for all-day wear\r\n• Hypoallergenic & skin-friendly\r\n\r\nCare\r\nAvoid harsh chemicals and perfumes.\r\nWipe gently after use and store in a dry place for extended shine."
-}
+[
+  {
+    "id": 1,
+    "business_name": "Thaarakam",
+    "logo_url": "/images/logo-1782997471466.png#scale=400",
+    "whatsapp_number": "918921356009",
+    "store_email": "anjuharikrishnan95@gmail.com",
+    "shipping_kerala": 50,
+    "shipping_south_india": 60,
+    "shipping_north_india": 80,
+    "default_description": "Details\r\n• Material: 316L Stainless Steel\r\n• Finish: Anti-tarnish, High Polish\r\n• Lightweight & comfortable for all-day wear\r\n• Hypoallergenic & skin-friendly\r\n\r\nCare\r\nAvoid harsh chemicals and perfumes.\r\nWipe gently after use and store in a dry place for extended shine."
+  }
+]
