@@ -57,10 +57,11 @@ create policy "Allow public read access to settings"
 -- Create reviews table
 create table if not exists public.reviews (
     id uuid default gen_random_uuid() primary key,
-    product_id uuid references public.products(id) on delete cascade not null,
+    product_id uuid references public.products(id) on delete cascade,
     reviewer_name text not null,
     rating integer not null check (rating >= 1 and rating <= 5),
     comment text not null,
+    is_verified boolean default true,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

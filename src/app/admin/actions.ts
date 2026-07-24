@@ -136,7 +136,6 @@ export async function addReviewByAdmin(reviewData: {
         reviewer_name: reviewData.reviewer_name,
         rating: Number(reviewData.rating),
         comment: reviewData.comment || '',
-        is_verified: true,
       }])
       .select();
 
