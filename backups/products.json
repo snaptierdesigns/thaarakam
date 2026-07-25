@@ -1678,13 +1678,13 @@
     "images": [
       "/images/products/1783140146428-0.jpeg"
     ],
-    "description": null,
+    "description": "",
     "is_featured": false,
     "requires_size": false,
     "max_size": null,
     "is_preorder": false,
-    "availability": "in_stock",
-    "stock_count": 3,
+    "availability": "out_of_stock",
+    "stock_count": 0,
     "created_at": "2026-07-04T04:42:31.795854+00:00"
   },
   {
