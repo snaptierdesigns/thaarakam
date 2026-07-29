@@ -13,8 +13,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(() => {
     if (typeof window !== 'undefined') {
       return (
-        document.cookie.includes('thaarakam_admin_session=authenticated') ||
-        localStorage.getItem('thaarakam_admin_session') === 'authenticated'
+        document.cookie.includes('thaarakam_admin_session_v2=auth_v2_98472') ||
+        localStorage.getItem('thaarakam_admin_session_v2') === 'auth_v2_98472'
       );
     }
     return null;
@@ -26,8 +26,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   React.useEffect(() => {
-    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('thaarakam_admin_session=authenticated');
-    const hasStorage = typeof localStorage !== 'undefined' && localStorage.getItem('thaarakam_admin_session') === 'authenticated';
+    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('thaarakam_admin_session_v2=auth_v2_98472');
+    const hasStorage = typeof localStorage !== 'undefined' && localStorage.getItem('thaarakam_admin_session_v2') === 'auth_v2_98472';
     
     if (hasCookie || hasStorage) {
       setIsAuthenticated(true);

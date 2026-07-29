@@ -8,9 +8,11 @@ export async function loginAdmin(email: string, password: string): Promise<{ suc
 
   if (email.trim().toLowerCase() === expectedEmail && password === expectedPassword) {
     if (typeof document !== 'undefined') {
-      document.cookie = "thaarakam_admin_session=authenticated; path=/; max-age=604800; SameSite=Lax";
+      document.cookie = "thaarakam_admin_session_v2=auth_v2_98472; path=/; max-age=604800; SameSite=Lax";
+      document.cookie = "thaarakam_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       try {
-        localStorage.setItem('thaarakam_admin_session', 'authenticated');
+        localStorage.setItem('thaarakam_admin_session_v2', 'auth_v2_98472');
+        localStorage.removeItem('thaarakam_admin_session');
       } catch (e) {}
     }
     return { success: true };
@@ -22,8 +24,10 @@ export async function loginAdmin(email: string, password: string): Promise<{ suc
 // Admin Logout helper
 export async function logoutAdmin() {
   if (typeof document !== 'undefined') {
+    document.cookie = "thaarakam_admin_session_v2=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     document.cookie = "thaarakam_admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     try {
+      localStorage.removeItem('thaarakam_admin_session_v2');
       localStorage.removeItem('thaarakam_admin_session');
     } catch (e) {}
   }

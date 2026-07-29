@@ -16,10 +16,10 @@ export function middleware(request: NextRequest) {
 
   // Protect all /admin routes, except the login page itself
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    const adminSession = request.cookies.get('thaarakam_admin_session')?.value;
+    const adminSession = request.cookies.get('thaarakam_admin_session_v2')?.value;
 
     // If session cookie is missing or not authenticated, redirect to login
-    if (!adminSession || adminSession !== 'authenticated') {
+    if (!adminSession || adminSession !== 'auth_v2_98472') {
       const loginUrl = new URL('/admin/login', request.url);
       return NextResponse.redirect(loginUrl);
     }

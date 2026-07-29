@@ -1,0 +1,170 @@
+================================================================================
+THAARAKAM CLOUDFLARE D1 DATABASE AUDIT REPORT (LAST 24 HOURS)
+Generated at: 2026-07-29T17:18:04.120Z (IST: 29/7/2026, 10:48:04 pm)
+================================================================================
+
+--------------------------------------------------------------------------------
+SECTION: Orders (Last 24h)
+--------------------------------------------------------------------------------
+Count: 1 record(s)
+[
+  {
+    "id": "test-1785341698722",
+    "order_number": "THK-698722-123",
+    "customer_name": "Test Customer",
+    "customer_phone": "9876543210",
+    "customer_email": "test@example.com",
+    "country": "India",
+    "address": "123 Test St",
+    "city": "Kochi",
+    "state": "Kerala",
+    "pincode": "682001",
+    "items": "[{\"id\":\"5785cf79-5a71-414c-9cf9-1cedd801aa52\",\"name\":\"Astra\",\"price\":499,\"quantity\":1}]",
+    "subtotal": 499,
+    "shipping_fee": 50,
+    "total_amount": 549,
+    "payment_status": "paid",
+    "razorpay_order_id": "rzp_test_123",
+    "razorpay_payment_id": "pay_test_456",
+    "shipping_status": "processing",
+    "tracking_number": null,
+    "carrier_name": "India Post",
+    "notes": "Test Order Note",
+    "created_at": "2026-07-29T16:14:58.722Z"
+  }
+]
+
+--------------------------------------------------------------------------------
+SECTION: All Orders Summary
+--------------------------------------------------------------------------------
+Count: 1 record(s)
+[
+  {
+    "id": "test-1785341698722",
+    "order_number": "THK-698722-123",
+    "customer_name": "Test Customer",
+    "customer_phone": "9876543210",
+    "total_amount": 549,
+    "shipping_status": "processing",
+    "created_at": "2026-07-29T16:14:58.722Z"
+  }
+]
+
+--------------------------------------------------------------------------------
+SECTION: Products (Last 24h)
+--------------------------------------------------------------------------------
+No records modified or created in this section during the last 24 hours.
+
+--------------------------------------------------------------------------------
+SECTION: Recent Product Catalog Summary
+--------------------------------------------------------------------------------
+Count: 10 record(s)
+[
+  {
+    "id": "5785cf79-5a71-414c-9cf9-1cedd801aa52",
+    "name": "Astra ",
+    "category": "Men's Accessories",
+    "price": 499,
+    "stock_count": 4,
+    "availability": "in_stock"
+  },
+  {
+    "id": "4ba5fb84-8a03-4bf2-99f0-c8e6a3a502f6",
+    "name": "Grace cross ",
+    "category": "Men's Accessories",
+    "price": 499,
+    "stock_count": 4,
+    "availability": "in_stock"
+  },
+  {
+    "id": "a0852867-8604-48a0-964d-a40154d9dbdd",
+    "name": "Celeste",
+    "category": "Men's Accessories",
+    "price": 499,
+    "stock_count": 4,
+    "availability": "in_stock"
+  },
+  {
+    "id": "430c75d5-1c94-4d37-a42a-2b7f63a2a1db",
+    "name": "Luna",
+    "category": "Men's Accessories",
+    "price": 499,
+    "stock_count": 3,
+    "availability": "in_stock"
+  },
+  {
+    "id": "4b8ec6a2-3433-4202-9843-84d641672d3e",
+    "name": "Crystal drop chain ",
+    "category": "Neckchains",
+    "price": 599,
+    "stock_count": 4,
+    "availability": "in_stock"
+  },
+  {
+    "id": "e36ae062-dfd7-4323-bcfd-4c4f9e07f6bf",
+    "name": "Crystal cross ",
+    "category": "Neckchains",
+    "price": 399,
+    "stock_count": 10,
+    "availability": "in_stock"
+  },
+  {
+    "id": "7a99364f-1796-49cc-86d1-71711f029b4e",
+    "name": "Layered grace cross ",
+    "category": "Neckchains",
+    "price": 799,
+    "stock_count": 5,
+    "availability": "in_stock"
+  },
+  {
+    "id": "26ec2917-e4df-4292-bde4-34ae6fd4c430",
+    "name": "Premium red tulip neck chain",
+    "category": "Neckchains",
+    "price": 430,
+    "stock_count": 7,
+    "availability": "in_stock"
+  },
+  {
+    "id": "96ac8a2e-9ec8-4180-84db-cac3255fff71",
+    "name": "Red tulip bracelet + chain combo ",
+    "category": "Neckchains",
+    "price": 699,
+    "stock_count": 3,
+    "availability": "in_stock"
+  },
+  {
+    "id": "93f87133-ead6-400a-b3af-640f864f72c8",
+    "name": "Slim Chain Anklet (Thick)",
+    "category": "Anklets",
+    "price": 680,
+    "stock_count": 6,
+    "availability": "in_stock"
+  }
+]
+
+--------------------------------------------------------------------------------
+SECTION: Reviews (Last 24h)
+--------------------------------------------------------------------------------
+No records modified or created in this section during the last 24 hours.
+
+--------------------------------------------------------------------------------
+SECTION: Settings Current State
+--------------------------------------------------------------------------------
+Count: 1 record(s)
+[
+  {
+    "id": 1,
+    "business_name": "Thaarakam",
+    "logo_url": "/images/logo-1782997471466.png#scale=400",
+    "whatsapp_number": "918921356009",
+    "store_email": "anjuharikrishnan95@gmail.com",
+    "shipping_kerala": 50,
+    "shipping_south_india": 60,
+    "shipping_north_india": 80,
+    "default_description": "Details\r\n• Material: 316L Stainless Steel\r\n• Finish: Anti-tarnish, High Polish\r\n• Lightweight & comfortable for all-day wear\r\n• Hypoallergenic & skin-friendly\r\n\r\nCare\r\nAvoid harsh chemicals and perfumes.\r\nWipe gently after use and store in a dry place for extended shine."
+  }
+]
+
+================================================================================
+END OF REPORT
+================================================================================
