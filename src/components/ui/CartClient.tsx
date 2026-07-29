@@ -27,22 +27,156 @@ export function detectLocationFromZip(
   rawZip: string,
   shippingKerala = 50,
   shippingSouthIndia = 60,
-  shippingNorthIndia = 80
+  shippingNorthIndia = 80,
+  selectedCountry = 'India'
 ): PostalDetectionResult {
-  const cleanPin = rawZip.trim().toUpperCase().replace(/\s+/g, '');
+  const rawUpper = rawZip.trim().toUpperCase();
+  const cleanPin = rawUpper.replace(/[^A-Z0-9]/g, '');
 
   if (!cleanPin) {
     return {
       isSupported: true,
-      country: 'India',
-      state: 'Kerala',
+      country: selectedCountry || 'India',
+      state: selectedCountry === 'Singapore' ? 'Singapore' : 'Kerala',
       city: '',
-      shippingFee: shippingKerala,
-      label: 'Kerala (Default)',
+      shippingFee: selectedCountry === 'Singapore' ? 2000 : shippingKerala,
+      label: selectedCountry === 'Singapore' ? 'Singapore' : 'Kerala (Default)',
     };
   }
 
-  // 1. Lakshadweep Island Pincodes (682551 - 682559)
+  // 1. Explicit Country Suffix/Prefix Detection in Zip Input (e.g. "238801 SG", "238801 SINGAPORE", "SW1A1AA UK", "90210 USA")
+  const hasSG = /SG|SINGAPORE/i.test(rawUpper) || selectedCountry === 'Singapore';
+  const hasUK = /UK|UNITED KINGDOM|LONDON|MANCHESTER/i.test(rawUpper) || selectedCountry === 'United Kingdom';
+  const hasUS = /US|USA|UNITED STATES/i.test(rawUpper) || selectedCountry === 'United States';
+  const hasCA = /CA|CANADA/i.test(rawUpper) || selectedCountry === 'Canada';
+  const hasUAE = /UAE|DUBAI|ABU DHABI/i.test(rawUpper) || selectedCountry === 'United Arab Emirates';
+  const hasMaldives = /MALDIVES|MALE/i.test(rawUpper) || selectedCountry === 'Maldives';
+
+  // 2. Singapore Postal Code Check (Sectors 01-82, 6 digits)
+  // Singapore codes start with 01-82 and are 6 digits (e.g. 238801, 018956, 049481, 089315, 608526)
+  if (hasSG || cleanPin.startsWith('0') || (cleanPin.length === 6 && /^(0[1-9]|[1-7]\d|8[0-2])\d{4}$/.test(cleanPin) && hasSG)) {
+    return {
+      isSupported: true,
+      country: 'Singapore',
+      state: 'Singapore',
+      city: 'Singapore',
+      shippingFee: 2000,
+      label: 'Singapore',
+    };
+  }
+
+  // 3. UK Postcodes (e.g. SW1A1AA, EC1A1BB, M11AE, B11AA, G11XQ, BT11AA)
+  if (hasUK || /^[A-Z]{1,2}[0-9][A-Z0-9]?[0-9][A-Z]{2}$/i.test(cleanPin)) {
+    let state = 'England';
+    let city = 'London';
+    const prefixLetters = cleanPin.match(/^[A-Z]{1,2}/i)?.[0].toUpperCase() || '';
+
+    if (['SW', 'SE', 'NW', 'NE', 'EC', 'WC', 'E', 'W', 'N'].includes(prefixLetters)) {
+      state = 'Greater London';
+      city = 'London';
+    } else if (prefixLetters === 'M') {
+      state = 'Greater Manchester';
+      city = 'Manchester';
+    } else if (prefixLetters === 'B') {
+      state = 'West Midlands';
+      city = 'Birmingham';
+    } else if (prefixLetters === 'G' || prefixLetters === 'EH') {
+      state = 'Scotland';
+      city = prefixLetters === 'EH' ? 'Edinburgh' : 'Glasgow';
+    } else if (prefixLetters === 'BT') {
+      state = 'Northern Ireland';
+      city = 'Belfast';
+    } else if (prefixLetters === 'CF') {
+      state = 'Wales';
+      city = 'Cardiff';
+    }
+
+    return {
+      isSupported: true,
+      country: 'United Kingdom',
+      state,
+      city,
+      shippingFee: 2700,
+      label: 'United Kingdom',
+    };
+  }
+
+  // 4. Canada Postal Codes (e.g. M5V2T6, K1A0B1, V6B1A1)
+  if (hasCA || /^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/i.test(cleanPin)) {
+    const firstLetter = cleanPin[0].toUpperCase();
+    let state = 'Ontario';
+    let city = 'Toronto';
+
+    if (firstLetter === 'A') { state = 'Newfoundland and Labrador'; city = "St. John's"; }
+    else if (firstLetter === 'B') { state = 'Nova Scotia'; city = 'Halifax'; }
+    else if (firstLetter === 'C') { state = 'Prince Edward Island'; city = 'Charlottetown'; }
+    else if (firstLetter === 'E') { state = 'New Brunswick'; city = 'Fredericton'; }
+    else if (['G', 'H', 'J'].includes(firstLetter)) { state = 'Quebec'; city = 'Montreal'; }
+    else if (['K', 'L', 'M', 'N', 'P'].includes(firstLetter)) { state = 'Ontario'; city = firstLetter === 'M' ? 'Toronto' : 'Ottawa'; }
+    else if (firstLetter === 'R') { state = 'Manitoba'; city = 'Winnipeg'; }
+    else if (firstLetter === 'S') { state = 'Saskatchewan'; city = 'Saskatoon'; }
+    else if (firstLetter === 'T') { state = 'Alberta'; city = 'Calgary'; }
+    else if (firstLetter === 'V') { state = 'British Columbia'; city = 'Vancouver'; }
+    else if (['X', 'Y'].includes(firstLetter)) { state = 'Northwest Territories / Yukon'; city = 'Yellowknife'; }
+
+    return {
+      isSupported: true,
+      country: 'Canada',
+      state,
+      city,
+      shippingFee: 2200,
+      label: 'Canada',
+    };
+  }
+
+  // 5. USA Zip Codes (5 digits or 5+4, e.g. 90210, 10001, 33101)
+  if (hasUS || /^\d{5}(-\d{4})?$/.test(cleanPin) && (hasUS || Number(cleanPin.substring(0,5)) > 89999)) {
+    const num = Number(cleanPin.substring(0, 5));
+    let state = 'California';
+    let city = 'Los Angeles';
+
+    if (num >= 90001 && num <= 96162) { state = 'California'; city = num >= 94000 ? 'San Francisco' : 'Los Angeles'; }
+    else if (num >= 10001 && num <= 14925) { state = 'New York'; city = 'New York City'; }
+    else if (num >= 33001 && num <= 34997) { state = 'Florida'; city = 'Miami'; }
+    else if (num >= 75001 && num <= 79999) { state = 'Texas'; city = num >= 77000 ? 'Houston' : 'Dallas'; }
+    else if (num >= 60001 && num <= 62999) { state = 'Illinois'; city = 'Chicago'; }
+    else if (num >= 98001 && num <= 99403) { state = 'Washington'; city = 'Seattle'; }
+
+    return {
+      isSupported: true,
+      country: 'United States',
+      state,
+      city,
+      shippingFee: 2600,
+      label: 'United States',
+    };
+  }
+
+  // 6. UAE / Dubai P.O. Box & Emirate Zip Codes
+  if (hasUAE || (/^(00000|00971|12345|\d{5})$/.test(cleanPin) && (cleanPin.startsWith('0') || cleanPin.startsWith('971') || hasUAE))) {
+    return {
+      isSupported: true,
+      country: 'United Arab Emirates',
+      state: 'Dubai',
+      city: 'Dubai',
+      shippingFee: 2200,
+      label: 'United Arab Emirates',
+    };
+  }
+
+  // 7. Maldives Postal Code (20000 - 20999 or MAL)
+  if (hasMaldives || /^20\d{2,3}$/.test(cleanPin) || cleanPin.startsWith('MAL')) {
+    return {
+      isSupported: true,
+      country: 'Maldives',
+      state: 'Kaafu Atoll',
+      city: 'Malé',
+      shippingFee: 2100,
+      label: 'Maldives',
+    };
+  }
+
+  // 8. Lakshadweep Island Pincodes (682551 - 682559)
   if (/^68255[1-9]$/.test(cleanPin)) {
     return {
       isSupported: true,
@@ -54,7 +188,7 @@ export function detectLocationFromZip(
     };
   }
 
-  // 2. Kerala Domestic Pincodes (67xxx, 68xxx, 69xxx)
+  // 9. Kerala Domestic Pincodes (67xxx, 68xxx, 69xxx)
   if (/^(67|68|69)\d{4}$/.test(cleanPin)) {
     let city = 'Kochi / Ernakulam';
     const prefix3 = cleanPin.substring(0, 3);
@@ -79,7 +213,7 @@ export function detectLocationFromZip(
     };
   }
 
-  // 3. South India Domestic Pincodes (5xxxxx or 60xxx-66xxx)
+  // 10. South India Domestic Pincodes (5xxxxx or 60xxx-66xxx)
   if (/^(5\d{5}|6[0-6]\d{4})$/.test(cleanPin)) {
     let state = 'Tamil Nadu';
     let city = 'Chennai';
@@ -115,7 +249,7 @@ export function detectLocationFromZip(
     };
   }
 
-  // 4. Other Domestic India Pincodes (1xxxxx, 2xxxxx, 3xxxxx, 4xxxxx, 7xxxxx, 8xxxxx)
+  // 11. Other Domestic India Pincodes (1xxxxx, 2xxxxx, 3xxxxx, 4xxxxx, 7xxxxx, 8xxxxx)
   if (/^[1-478]\d{5}$/.test(cleanPin)) {
     let state = 'India';
     let city = '';
@@ -152,157 +286,7 @@ export function detectLocationFromZip(
     };
   }
 
-  // 5. UK Postcodes (e.g. SW1A1AA, EC1A1BB, M11AE, B11AA, G11XQ, BT11AA)
-  if (/^[A-Z]{1,2}[0-9][A-Z0-9]?[0-9][A-Z]{2}$/i.test(cleanPin)) {
-    let state = 'England';
-    let city = 'London';
-    const prefixLetters = cleanPin.match(/^[A-Z]{1,2}/i)?.[0].toUpperCase() || '';
-
-    if (['SW', 'SE', 'NW', 'NE', 'EC', 'WC', 'E', 'W', 'N'].includes(prefixLetters)) {
-      state = 'Greater London';
-      city = 'London';
-    } else if (prefixLetters === 'M') {
-      state = 'Greater Manchester';
-      city = 'Manchester';
-    } else if (prefixLetters === 'B') {
-      state = 'West Midlands';
-      city = 'Birmingham';
-    } else if (prefixLetters === 'G' || prefixLetters === 'EH') {
-      state = 'Scotland';
-      city = prefixLetters === 'EH' ? 'Edinburgh' : 'Glasgow';
-    } else if (prefixLetters === 'BT') {
-      state = 'Northern Ireland';
-      city = 'Belfast';
-    } else if (prefixLetters === 'CF') {
-      state = 'Wales';
-      city = 'Cardiff';
-    }
-
-    return {
-      isSupported: true,
-      country: 'United Kingdom',
-      state,
-      city,
-      shippingFee: 2700,
-      label: 'United Kingdom',
-    };
-  }
-
-  // 6. Canada Postal Codes (e.g. M5V2T6, K1A0B1, V6B1A1)
-  if (/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/i.test(cleanPin)) {
-    const firstLetter = cleanPin[0].toUpperCase();
-    let state = 'Ontario';
-    let city = 'Toronto';
-
-    if (firstLetter === 'A') { state = 'Newfoundland and Labrador'; city = "St. John's"; }
-    else if (firstLetter === 'B') { state = 'Nova Scotia'; city = 'Halifax'; }
-    else if (firstLetter === 'C') { state = 'Prince Edward Island'; city = 'Charlottetown'; }
-    else if (firstLetter === 'E') { state = 'New Brunswick'; city = 'Fredericton'; }
-    else if (['G', 'H', 'J'].includes(firstLetter)) { state = 'Quebec'; city = 'Montreal'; }
-    else if (['K', 'L', 'M', 'N', 'P'].includes(firstLetter)) { state = 'Ontario'; city = firstLetter === 'M' ? 'Toronto' : 'Ottawa'; }
-    else if (firstLetter === 'R') { state = 'Manitoba'; city = 'Winnipeg'; }
-    else if (firstLetter === 'S') { state = 'Saskatchewan'; city = 'Saskatoon'; }
-    else if (firstLetter === 'T') { state = 'Alberta'; city = 'Calgary'; }
-    else if (firstLetter === 'V') { state = 'British Columbia'; city = 'Vancouver'; }
-    else if (['X', 'Y'].includes(firstLetter)) { state = 'Northwest Territories / Yukon'; city = 'Yellowknife'; }
-
-    return {
-      isSupported: true,
-      country: 'Canada',
-      state,
-      city,
-      shippingFee: 2200,
-      label: 'Canada',
-    };
-  }
-
-  // 7. USA Zip Codes (5 digits or 5+4, e.g. 90210, 10001, 33101)
-  if (/^\d{5}(-\d{4})?$/.test(cleanPin) || /^\d{5}$/.test(cleanPin)) {
-    const num = Number(cleanPin.substring(0, 5));
-    let state = 'California';
-    let city = 'Los Angeles';
-
-    if (num >= 90001 && num <= 96162) { state = 'California'; city = num >= 94000 ? 'San Francisco' : 'Los Angeles'; }
-    else if (num >= 10001 && num <= 14925) { state = 'New York'; city = 'New York City'; }
-    else if (num >= 33001 && num <= 34997) { state = 'Florida'; city = 'Miami'; }
-    else if (num >= 75001 && num <= 79999) { state = 'Texas'; city = num >= 77000 ? 'Houston' : 'Dallas'; }
-    else if (num >= 60001 && num <= 62999) { state = 'Illinois'; city = 'Chicago'; }
-    else if (num >= 98001 && num <= 99403) { state = 'Washington'; city = 'Seattle'; }
-    else if (num >= 2101 && num <= 2791) { state = 'Massachusetts'; city = 'Boston'; }
-    else if (num >= 30001 && num <= 31999) { state = 'Georgia'; city = 'Atlanta'; }
-    else if (num >= 89001 && num <= 89883) { state = 'Nevada'; city = 'Las Vegas'; }
-
-    return {
-      isSupported: true,
-      country: 'United States',
-      state,
-      city,
-      shippingFee: 2600,
-      label: 'United States',
-    };
-  }
-
-  // 8. Maldives Postal Code (20000 - 20999 or MAL)
-  if (/^20\d{2,3}$/.test(cleanPin) || cleanPin.startsWith('MAL')) {
-    return {
-      isSupported: true,
-      country: 'Maldives',
-      state: 'Kaafu Atoll',
-      city: 'Malé',
-      shippingFee: 2100,
-      label: 'Maldives',
-    };
-  }
-
-  // 9. Singapore Postal Code (6 digits 010000 - 829999)
-  if (/^(0[1-9]|[1-7]\d|8[0-2])\d{4}$/.test(cleanPin)) {
-    return {
-      isSupported: true,
-      country: 'Singapore',
-      state: 'Singapore',
-      city: 'Singapore',
-      shippingFee: 2000,
-      label: 'Singapore',
-    };
-  }
-
-  // 10. UAE / Dubai P.O. Box & Emirate Zip Codes
-  if (/^(00000|00971|12345|\d{5})$/.test(cleanPin) && (cleanPin.startsWith('0') || cleanPin.startsWith('971') || cleanPin === '12345')) {
-    return {
-      isSupported: true,
-      country: 'United Arab Emirates',
-      state: 'Dubai',
-      city: 'Dubai',
-      shippingFee: 2200,
-      label: 'United Arab Emirates',
-    };
-  }
-
-  // 11. Sri Lanka Postal Code (5 digits 00100 - 96100)
-  if (/^\d{5}$/.test(cleanPin) && Number(cleanPin) >= 100 && Number(cleanPin) <= 96100) {
-    return {
-      isSupported: true,
-      country: 'Sri Lanka',
-      state: 'Western Province',
-      city: 'Colombo',
-      shippingFee: 1500,
-      label: 'Sri Lanka',
-    };
-  }
-
-  // 12. Bangladesh Postal Code (4 digits 1000 - 9400)
-  if (/^\d{4}$/.test(cleanPin) && Number(cleanPin) >= 1000 && Number(cleanPin) <= 9400) {
-    return {
-      isSupported: true,
-      country: 'Bangladesh',
-      state: 'Dhaka Division',
-      city: 'Dhaka',
-      shippingFee: 1500,
-      label: 'Bangladesh',
-    };
-  }
-
-  // 13. UNSUPPORTED POSTAL CODE / COUNTRY
+  // 12. UNSUPPORTED POSTAL CODE / COUNTRY
   return {
     isSupported: false,
     country: 'Unsupported',
@@ -338,7 +322,8 @@ export default function CartClient({ settings }: CartClientProps) {
     form.pinCode,
     shippingKerala,
     shippingSouthIndia,
-    shippingNorthIndia
+    shippingNorthIndia,
+    form.country
   );
 
   const shippingFee = locationInfo.isSupported ? locationInfo.shippingFee : 0;
@@ -351,7 +336,7 @@ export default function CartClient({ settings }: CartClientProps) {
     setForm((prev) => {
       const updated = { ...prev, [name]: value };
       if (name === 'pinCode') {
-        const detected = detectLocationFromZip(value, shippingKerala, shippingSouthIndia, shippingNorthIndia);
+        const detected = detectLocationFromZip(value, shippingKerala, shippingSouthIndia, shippingNorthIndia, prev.country);
         if (detected.isSupported && detected.country) {
           updated.country = detected.country;
           if (detected.state) updated.state = detected.state;
@@ -782,10 +767,61 @@ export default function CartClient({ settings }: CartClientProps) {
               {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
               
               {form.pinCode.trim().length > 0 && locationInfo.isSupported && (
-                <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
-                  ₹{shippingFee.toLocaleString('en-IN')} shipping fee applied for {regionLabel} ({form.country})
-                </p>
+                <div className="flex flex-col gap-2 mt-1.5">
+                  <p className="text-[10px] text-green-700 font-semibold flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                    ₹{shippingFee.toLocaleString('en-IN')} shipping fee applied for {regionLabel} ({form.country})
+                  </p>
+
+                  {/* Quick Country Switcher for 5/6 digit postal codes like 238801 */}
+                  {form.pinCode.trim().length >= 4 && (
+                    <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-secondary mt-0.5">
+                      <span className="font-semibold text-[9px] uppercase tracking-wider text-foreground">Set Country:</span>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'India', state: p.state === 'Singapore' ? 'Kerala' : p.state }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'India' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇮🇳 India
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'Singapore', state: 'Singapore', city: 'Singapore' }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'Singapore' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇸🇬 Singapore (₹2,000)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'United Kingdom', state: 'Greater London', city: 'London' }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'United Kingdom' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇬🇧 UK (₹2,700)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'United States', state: 'California', city: 'Los Angeles' }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'United States' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇺🇸 USA (₹2,600)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'Canada', state: 'Ontario', city: 'Toronto' }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'Canada' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇨🇦 Canada (₹2,200)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setForm((p) => ({ ...p, country: 'United Arab Emirates', state: 'Dubai', city: 'Dubai' }))}
+                        className={`px-2 py-1 rounded-lg border text-[10px] font-medium transition-all ${form.country === 'United Arab Emirates' ? 'bg-foreground text-background border-foreground font-bold' : 'bg-background hover:bg-border/20 border-border text-foreground'}`}
+                      >
+                        🇦🇪 UAE (₹2,200)
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
 
               {form.pinCode.trim().length > 0 && !locationInfo.isSupported && (
