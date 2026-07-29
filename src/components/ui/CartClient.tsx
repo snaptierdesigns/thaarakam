@@ -13,7 +13,306 @@ interface CartClientProps {
   settings: Settings | null;
 }
 
-type RegionType = 'kerala' | 'south_india' | 'north_india';
+export interface PostalDetectionResult {
+  isSupported: boolean;
+  country: string;
+  state: string;
+  city: string;
+  shippingFee: number;
+  label: string;
+  errorMessage?: string;
+}
+
+export function detectLocationFromZip(
+  rawZip: string,
+  shippingKerala = 50,
+  shippingSouthIndia = 60,
+  shippingNorthIndia = 80
+): PostalDetectionResult {
+  const cleanPin = rawZip.trim().toUpperCase().replace(/\s+/g, '');
+
+  if (!cleanPin) {
+    return {
+      isSupported: true,
+      country: 'India',
+      state: 'Kerala',
+      city: '',
+      shippingFee: shippingKerala,
+      label: 'Kerala (Default)',
+    };
+  }
+
+  // 1. Lakshadweep Island Pincodes (682551 - 682559)
+  if (/^68255[1-9]$/.test(cleanPin)) {
+    return {
+      isSupported: true,
+      country: 'India',
+      state: 'Lakshadweep',
+      city: 'Kavaratti Island',
+      shippingFee: 2100,
+      label: 'Lakshadweep Islands',
+    };
+  }
+
+  // 2. Kerala Domestic Pincodes (67xxx, 68xxx, 69xxx)
+  if (/^(67|68|69)\d{4}$/.test(cleanPin)) {
+    let city = 'Kochi / Ernakulam';
+    const prefix3 = cleanPin.substring(0, 3);
+    if (prefix3 === '695' || prefix3 === '691') city = 'Thiruvananthapuram / Kollam';
+    else if (prefix3 === '673') city = 'Kozhikode';
+    else if (prefix3 === '680') city = 'Thrissur';
+    else if (prefix3 === '686') city = 'Kottayam';
+    else if (prefix3 === '670') city = 'Kannur';
+    else if (prefix3 === '678') city = 'Palakkad';
+    else if (prefix3 === '688') city = 'Alappuzha';
+    else if (prefix3 === '689') city = 'Pathanamthitta';
+    else if (prefix3 === '685') city = 'Idukki';
+    else if (prefix3 === '671') city = 'Kasaragod';
+
+    return {
+      isSupported: true,
+      country: 'India',
+      state: 'Kerala',
+      city,
+      shippingFee: shippingKerala,
+      label: 'Kerala',
+    };
+  }
+
+  // 3. South India Domestic Pincodes (5xxxxx or 60xxx-66xxx)
+  if (/^(5\d{5}|6[0-6]\d{4})$/.test(cleanPin)) {
+    let state = 'Tamil Nadu';
+    let city = 'Chennai';
+    const prefix2 = cleanPin.substring(0, 2);
+    const num2 = Number(prefix2);
+
+    if (num2 >= 60 && num2 <= 64) {
+      state = 'Tamil Nadu';
+      if (prefix2 === '60') city = 'Chennai';
+      else if (prefix2 === '64') city = 'Coimbatore';
+      else if (prefix2 === '62') city = 'Madurai';
+    } else if (prefix2 === '60' && cleanPin.substring(0, 3) === '605') {
+      state = 'Puducherry';
+      city = 'Puducherry';
+    } else if (num2 >= 56 && num2 <= 59) {
+      state = 'Karnataka';
+      city = prefix2 === '56' ? 'Bengaluru' : 'Mysuru';
+    } else if (num2 >= 50 && num2 <= 50) {
+      state = 'Telangana';
+      city = 'Hyderabad';
+    } else if (num2 >= 51 && num2 <= 53) {
+      state = 'Andhra Pradesh';
+      city = prefix2 === '53' ? 'Visakhapatnam' : 'Vijayawada';
+    }
+
+    return {
+      isSupported: true,
+      country: 'India',
+      state,
+      city,
+      shippingFee: shippingSouthIndia,
+      label: 'South India',
+    };
+  }
+
+  // 4. Other Domestic India Pincodes (1xxxxx, 2xxxxx, 3xxxxx, 4xxxxx, 7xxxxx, 8xxxxx)
+  if (/^[1-478]\d{5}$/.test(cleanPin)) {
+    let state = 'India';
+    let city = '';
+    const prefix2 = cleanPin.substring(0, 2);
+
+    if (prefix2 === '11') { state = 'Delhi'; city = 'New Delhi'; }
+    else if (['40','41','42','43','44'].includes(prefix2)) {
+      state = 'Maharashtra';
+      city = prefix2 === '40' ? 'Mumbai' : 'Pune';
+    } else if (['70','71','72','73'].includes(prefix2)) {
+      state = 'West Bengal';
+      city = 'Kolkata';
+    } else if (['38','39'].includes(prefix2)) {
+      state = 'Gujarat';
+      city = 'Ahmedabad';
+    } else if (['30','31','32','33','34'].includes(prefix2)) {
+      state = 'Rajasthan';
+      city = 'Jaipur';
+    } else if (['20','22','24'].includes(prefix2)) {
+      state = 'Uttar Pradesh';
+      city = 'Lucknow / Noida';
+    } else if (['16','14','12'].includes(prefix2)) {
+      state = 'Punjab / Haryana';
+      city = 'Chandigarh';
+    }
+
+    return {
+      isSupported: true,
+      country: 'India',
+      state,
+      city,
+      shippingFee: shippingNorthIndia,
+      label: 'Domestic India',
+    };
+  }
+
+  // 5. UK Postcodes (e.g. SW1A1AA, EC1A1BB, M11AE, B11AA, G11XQ, BT11AA)
+  if (/^[A-Z]{1,2}[0-9][A-Z0-9]?[0-9][A-Z]{2}$/i.test(cleanPin)) {
+    let state = 'England';
+    let city = 'London';
+    const prefixLetters = cleanPin.match(/^[A-Z]{1,2}/i)?.[0].toUpperCase() || '';
+
+    if (['SW', 'SE', 'NW', 'NE', 'EC', 'WC', 'E', 'W', 'N'].includes(prefixLetters)) {
+      state = 'Greater London';
+      city = 'London';
+    } else if (prefixLetters === 'M') {
+      state = 'Greater Manchester';
+      city = 'Manchester';
+    } else if (prefixLetters === 'B') {
+      state = 'West Midlands';
+      city = 'Birmingham';
+    } else if (prefixLetters === 'G' || prefixLetters === 'EH') {
+      state = 'Scotland';
+      city = prefixLetters === 'EH' ? 'Edinburgh' : 'Glasgow';
+    } else if (prefixLetters === 'BT') {
+      state = 'Northern Ireland';
+      city = 'Belfast';
+    } else if (prefixLetters === 'CF') {
+      state = 'Wales';
+      city = 'Cardiff';
+    }
+
+    return {
+      isSupported: true,
+      country: 'United Kingdom',
+      state,
+      city,
+      shippingFee: 2700,
+      label: 'United Kingdom',
+    };
+  }
+
+  // 6. Canada Postal Codes (e.g. M5V2T6, K1A0B1, V6B1A1)
+  if (/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/i.test(cleanPin)) {
+    const firstLetter = cleanPin[0].toUpperCase();
+    let state = 'Ontario';
+    let city = 'Toronto';
+
+    if (firstLetter === 'A') { state = 'Newfoundland and Labrador'; city = "St. John's"; }
+    else if (firstLetter === 'B') { state = 'Nova Scotia'; city = 'Halifax'; }
+    else if (firstLetter === 'C') { state = 'Prince Edward Island'; city = 'Charlottetown'; }
+    else if (firstLetter === 'E') { state = 'New Brunswick'; city = 'Fredericton'; }
+    else if (['G', 'H', 'J'].includes(firstLetter)) { state = 'Quebec'; city = 'Montreal'; }
+    else if (['K', 'L', 'M', 'N', 'P'].includes(firstLetter)) { state = 'Ontario'; city = firstLetter === 'M' ? 'Toronto' : 'Ottawa'; }
+    else if (firstLetter === 'R') { state = 'Manitoba'; city = 'Winnipeg'; }
+    else if (firstLetter === 'S') { state = 'Saskatchewan'; city = 'Saskatoon'; }
+    else if (firstLetter === 'T') { state = 'Alberta'; city = 'Calgary'; }
+    else if (firstLetter === 'V') { state = 'British Columbia'; city = 'Vancouver'; }
+    else if (['X', 'Y'].includes(firstLetter)) { state = 'Northwest Territories / Yukon'; city = 'Yellowknife'; }
+
+    return {
+      isSupported: true,
+      country: 'Canada',
+      state,
+      city,
+      shippingFee: 2200,
+      label: 'Canada',
+    };
+  }
+
+  // 7. USA Zip Codes (5 digits or 5+4, e.g. 90210, 10001, 33101)
+  if (/^\d{5}(-\d{4})?$/.test(cleanPin) || /^\d{5}$/.test(cleanPin)) {
+    const num = Number(cleanPin.substring(0, 5));
+    let state = 'California';
+    let city = 'Los Angeles';
+
+    if (num >= 90001 && num <= 96162) { state = 'California'; city = num >= 94000 ? 'San Francisco' : 'Los Angeles'; }
+    else if (num >= 10001 && num <= 14925) { state = 'New York'; city = 'New York City'; }
+    else if (num >= 33001 && num <= 34997) { state = 'Florida'; city = 'Miami'; }
+    else if (num >= 75001 && num <= 79999) { state = 'Texas'; city = num >= 77000 ? 'Houston' : 'Dallas'; }
+    else if (num >= 60001 && num <= 62999) { state = 'Illinois'; city = 'Chicago'; }
+    else if (num >= 98001 && num <= 99403) { state = 'Washington'; city = 'Seattle'; }
+    else if (num >= 2101 && num <= 2791) { state = 'Massachusetts'; city = 'Boston'; }
+    else if (num >= 30001 && num <= 31999) { state = 'Georgia'; city = 'Atlanta'; }
+    else if (num >= 89001 && num <= 89883) { state = 'Nevada'; city = 'Las Vegas'; }
+
+    return {
+      isSupported: true,
+      country: 'United States',
+      state,
+      city,
+      shippingFee: 2600,
+      label: 'United States',
+    };
+  }
+
+  // 8. Maldives Postal Code (20000 - 20999 or MAL)
+  if (/^20\d{2,3}$/.test(cleanPin) || cleanPin.startsWith('MAL')) {
+    return {
+      isSupported: true,
+      country: 'Maldives',
+      state: 'Kaafu Atoll',
+      city: 'Malé',
+      shippingFee: 2100,
+      label: 'Maldives',
+    };
+  }
+
+  // 9. Singapore Postal Code (6 digits 010000 - 829999)
+  if (/^(0[1-9]|[1-7]\d|8[0-2])\d{4}$/.test(cleanPin)) {
+    return {
+      isSupported: true,
+      country: 'Singapore',
+      state: 'Singapore',
+      city: 'Singapore',
+      shippingFee: 2000,
+      label: 'Singapore',
+    };
+  }
+
+  // 10. UAE / Dubai P.O. Box & Emirate Zip Codes
+  if (/^(00000|00971|12345|\d{5})$/.test(cleanPin) && (cleanPin.startsWith('0') || cleanPin.startsWith('971') || cleanPin === '12345')) {
+    return {
+      isSupported: true,
+      country: 'United Arab Emirates',
+      state: 'Dubai',
+      city: 'Dubai',
+      shippingFee: 2200,
+      label: 'United Arab Emirates',
+    };
+  }
+
+  // 11. Sri Lanka Postal Code (5 digits 00100 - 96100)
+  if (/^\d{5}$/.test(cleanPin) && Number(cleanPin) >= 100 && Number(cleanPin) <= 96100) {
+    return {
+      isSupported: true,
+      country: 'Sri Lanka',
+      state: 'Western Province',
+      city: 'Colombo',
+      shippingFee: 1500,
+      label: 'Sri Lanka',
+    };
+  }
+
+  // 12. Bangladesh Postal Code (4 digits 1000 - 9400)
+  if (/^\d{4}$/.test(cleanPin) && Number(cleanPin) >= 1000 && Number(cleanPin) <= 9400) {
+    return {
+      isSupported: true,
+      country: 'Bangladesh',
+      state: 'Dhaka Division',
+      city: 'Dhaka',
+      shippingFee: 1500,
+      label: 'Bangladesh',
+    };
+  }
+
+  // 13. UNSUPPORTED POSTAL CODE / COUNTRY
+  return {
+    isSupported: false,
+    country: 'Unsupported',
+    state: '',
+    city: '',
+    shippingFee: 0,
+    label: 'Unsupported Destination',
+    errorMessage: 'Sorry, but we do not currently deliver to your country',
+  };
+}
 
 export default function CartClient({ settings }: CartClientProps) {
   const { cart, updateQuantity, removeFromCart, subtotal, cartCount, clearCart } = useCart();
@@ -35,83 +334,33 @@ export default function CartClient({ settings }: CartClientProps) {
   const shippingSouthIndia = Number(settings?.shipping_south_india ?? 60);
   const shippingNorthIndia = Number(settings?.shipping_north_india ?? 80);
 
-  const getShippingFeeAndLabel = () => {
-    const selectedCountry = form.country;
-    const cleanPin = form.pinCode.trim().toUpperCase().replace(/\s+/g, '');
+  const locationInfo = detectLocationFromZip(
+    form.pinCode,
+    shippingKerala,
+    shippingSouthIndia,
+    shippingNorthIndia
+  );
 
-    // 1. International Zip Code Auto-Detection
-    if (cleanPin.length > 0) {
-      // Lakshadweep Island Pincodes (682551 - 682559)
-      if (/^68255[1-9]$/.test(cleanPin)) {
-        return { shippingFee: 2100, label: 'Lakshadweep' };
-      }
-
-      // UK Postcode Format (e.g. SW1A1AA, EC1A1BB, M11AE)
-      if (/^[A-Z]{1,2}[0-9][A-Z0-9]?[0-9][A-Z]{2}$/i.test(cleanPin)) {
-        return { shippingFee: 2700, label: 'United Kingdom (International)' };
-      }
-
-      // Canada Postal Code Format (e.g. M5V2T6, K1A0B1)
-      if (/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/i.test(cleanPin)) {
-        return { shippingFee: 2200, label: 'Canada (International)' };
-      }
-
-      // USA Zip Code Format (5 digits or 5+4, e.g. 90210, 10001-1234)
-      if (/^\d{5}(-\d{4})?$/.test(cleanPin) && selectedCountry === 'United States') {
-        return { shippingFee: 2600, label: 'United States (International)' };
-      }
-
-      // Maldives Postal Code (20000 - 20999)
-      if (/^20\d{3}$/.test(cleanPin) || selectedCountry === 'Maldives') {
-        return { shippingFee: 2100, label: 'Maldives (International)' };
-      }
-
-      // Sri Lanka Postal Code (5 digits 00100 - 96100)
-      if (/^\d{5}$/.test(cleanPin) && selectedCountry === 'Sri Lanka') {
-        return { shippingFee: 1500, label: 'Sri Lanka (International)' };
-      }
-
-      // Bangladesh Postal Code (4 digits 1000 - 9400)
-      if (/^\d{4}$/.test(cleanPin) && selectedCountry === 'Bangladesh') {
-        return { shippingFee: 1500, label: 'Bangladesh (International)' };
-      }
-    }
-
-    // 2. Dropdown Country Selection Rate
-    if (selectedCountry !== 'India') {
-      const rate = COUNTRY_SHIPPING_RATES[selectedCountry] ?? 2800;
-      return { shippingFee: rate, label: `${selectedCountry} (International)` };
-    }
-
-    // 3. Domestic India Pincode Rate
-    if (!cleanPin || cleanPin.length < 6 || isNaN(Number(cleanPin))) {
-      return { shippingFee: shippingKerala, label: 'Kerala (Default)' };
-    }
-
-    const prefix2 = cleanPin.substring(0, 2);
-    const prefix1 = cleanPin.substring(0, 1);
-
-    // Kerala circles: 67, 68, 69
-    if (prefix2 === '67' || prefix2 === '68' || prefix2 === '69') {
-      return { shippingFee: shippingKerala, label: 'Kerala' };
-    }
-
-    // South India region first digits: 5, or 60-66
-    const numPrefix2 = Number(prefix2);
-    if (prefix1 === '5' || (numPrefix2 >= 60 && numPrefix2 <= 66)) {
-      return { shippingFee: shippingSouthIndia, label: 'South India' };
-    }
-
-    // Domestic India (Other states)
-    return { shippingFee: shippingNorthIndia, label: 'Domestic India' };
-  };
-
-  const { shippingFee, label: regionLabel } = getShippingFeeAndLabel();
+  const shippingFee = locationInfo.isSupported ? locationInfo.shippingFee : 0;
+  const regionLabel = locationInfo.label;
   const grandTotal = subtotal + shippingFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    
+    setForm((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'pinCode') {
+        const detected = detectLocationFromZip(value, shippingKerala, shippingSouthIndia, shippingNorthIndia);
+        if (detected.isSupported && detected.country) {
+          updated.country = detected.country;
+          if (detected.state) updated.state = detected.state;
+          if (detected.city) updated.city = detected.city;
+        }
+      }
+      return updated;
+    });
+
     if (formErrors[name as keyof CheckoutDetails]) {
       setFormErrors((prev) => ({ ...prev, [name]: '' }));
     }
@@ -125,13 +374,10 @@ export default function CartClient({ settings }: CartClientProps) {
     if (!form.city.trim()) errors.city = 'City is required';
     if (!form.state.trim()) errors.state = 'State is required';
     
-    if (form.country === 'India') {
-      const pin = form.pinCode.trim();
-      if (!pin) {
-        errors.pinCode = 'PIN Code is required';
-      } else if (pin.length !== 6 || isNaN(Number(pin))) {
-        errors.pinCode = 'Please enter a valid 6-digit PIN code';
-      }
+    if (!form.pinCode.trim()) {
+      errors.pinCode = 'PIN / Postal Code is required';
+    } else if (!locationInfo.isSupported) {
+      errors.pinCode = 'Sorry, but we do not currently deliver to your country';
     }
 
     setFormErrors(errors);
@@ -450,32 +696,6 @@ export default function CartClient({ settings }: CartClientProps) {
               Delivery Details
             </h2>
             
-            {/* Country Selector */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="country" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                Country / Region
-              </label>
-              <select
-                id="country"
-                name="country"
-                value={form.country}
-                onChange={handleInputChange}
-                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-              >
-                <option value="India">India (Domestic Pinpoint Rate)</option>
-                <option value="United Kingdom">United Kingdom (₹2,700)</option>
-                <option value="United States">United States (₹2,600)</option>
-                <option value="Canada">Canada (₹2,200)</option>
-                <option value="Maldives">Maldives (₹2,100)</option>
-                <option value="Lakshadweep">Lakshadweep (₹2,100)</option>
-                <option value="Singapore">Singapore (₹2,000)</option>
-                <option value="United Arab Emirates">UAE / Dubai (₹2,200)</option>
-                <option value="Sri Lanka">Sri Lanka (₹1,500)</option>
-                <option value="Bangladesh">Bangladesh (₹1,500)</option>
-                <option value="Other International">Other International (₹2,800)</option>
-              </select>
-            </div>
-
             {/* Full Name */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="fullName" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
@@ -544,6 +764,38 @@ export default function CartClient({ settings }: CartClientProps) {
               {formErrors.address && <p className="text-[10px] text-red-500 font-medium">{formErrors.address}</p>}
             </div>
 
+            {/* PIN / Postal Code (Auto-Detects Country, Region, State & City) */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary flex items-center justify-between">
+                <span>PIN / Postal / Zip Code</span>
+                <span className="text-[9px] text-secondary font-normal lowercase">(auto-detects country & rate)</span>
+              </label>
+              <input
+                type="text"
+                id="pinCode"
+                name="pinCode"
+                value={form.pinCode}
+                onChange={handleInputChange}
+                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors font-medium tracking-wide"
+                placeholder="Enter PIN / Zip / Postal code"
+              />
+              {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
+              
+              {form.pinCode.trim().length > 0 && locationInfo.isSupported && (
+                <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                  ₹{shippingFee.toLocaleString('en-IN')} shipping fee applied for {regionLabel} ({form.country})
+                </p>
+              )}
+
+              {form.pinCode.trim().length > 0 && !locationInfo.isSupported && (
+                <p className="text-[10px] text-red-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-red-50 border border-red-200/50 p-2.5 rounded-xl">
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-600"></span>
+                  Sorry, but we do not currently deliver to your country
+                </p>
+              )}
+            </div>
+
             {/* City & State Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
@@ -564,7 +816,7 @@ export default function CartClient({ settings }: CartClientProps) {
 
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="state" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                  State
+                  State / Region
                 </label>
                 <input
                   type="text"
@@ -579,54 +831,23 @@ export default function CartClient({ settings }: CartClientProps) {
               </div>
             </div>
 
-            {/* PIN / Postal Code */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                PIN / Postal / Zip Code
-              </label>
-              <input
-                type="text"
-                id="pinCode"
-                name="pinCode"
-                value={form.pinCode}
-                onChange={handleInputChange}
-                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                placeholder={form.country === 'India' ? "6-digit PIN code" : "Zip / Postal code"}
-              />
-              {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
-              
-              {form.pinCode.trim().length > 0 && (
-                <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
-                  ₹{shippingFee.toLocaleString('en-IN')} shipping fee applied for {regionLabel}
-                </p>
-              )}
-            </div>
-
-            {/* Payment Mode Notice */}
-            <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-xl p-3 text-[10px] text-emerald-800 leading-relaxed flex items-start gap-2 mt-2">
-              <span className="text-xs">🔒</span>
-              <div>
-                <strong>Secure Payment via Razorpay.</strong> Your payment is verified instantly and stock is reserved only after successful payment callback.
-              </div>
-            </div>
-
             {/* Razorpay Online Payment Button */}
             <button
               type="button"
               onClick={handleRazorpayPayment}
-              disabled={isProcessing}
-              className="w-full rounded-xl bg-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-2 shadow-sm"
+              disabled={isProcessing || (form.pinCode.trim().length > 0 && !locationInfo.isSupported)}
+              className="w-full rounded-xl bg-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.99] disabled:opacity-40 transition-all flex items-center justify-center gap-2 mt-4 shadow-sm"
             >
               <ShoppingBag className="h-4 w-4" />
-              {isProcessing ? 'Opening Payment Gateway...' : `Pay ₹${grandTotal.toLocaleString('en-IN')} Online (Razorpay)`}
+              {isProcessing ? 'Opening Payment Gateway...' : (form.pinCode.trim().length > 0 && !locationInfo.isSupported) ? 'Delivery Not Available to Your Location' : `Pay ₹${grandTotal.toLocaleString('en-IN')} Online (Razorpay)`}
             </button>
 
             {/* WhatsApp Alternative Checkout Button */}
             <button
               type="button"
               onClick={handleWhatsAppCheckout}
-              className="w-full rounded-xl border border-border bg-background py-3 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-border/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              disabled={form.pinCode.trim().length > 0 && !locationInfo.isSupported}
+              className="w-full rounded-xl border border-border bg-background py-3 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-border/20 active:scale-[0.99] disabled:opacity-40 transition-all flex items-center justify-center gap-2"
             >
               <Send className="h-3.5 w-3.5" />
               Order via WhatsApp
