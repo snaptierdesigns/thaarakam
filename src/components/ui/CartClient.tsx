@@ -397,7 +397,7 @@ export default function CartClient({ settings }: CartClientProps) {
     }
 
     const options = {
-      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummykey',
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TJNVaCMelGkB71',
       amount: Math.round(grandTotal * 100), // Amount in paise
       currency: 'INR',
       name: settings?.business_name || 'Thaarakam Jewellery',

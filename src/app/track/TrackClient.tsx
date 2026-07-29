@@ -225,7 +225,19 @@ function TrackContent() {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">India Post Consignment</span>
-              <h2 className="text-xl font-bold text-foreground font-mono">{consignmentOnly}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-foreground font-mono">{consignmentOnly}</h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(consignmentOnly);
+                    alert(`Consignment Number ${consignmentOnly} copied to clipboard!`);
+                  }}
+                  className="px-2.5 py-1 rounded-lg border border-border bg-border/20 hover:bg-border/40 text-[10px] font-semibold text-foreground transition-all flex items-center gap-1"
+                >
+                  Copy Code
+                </button>
+              </div>
               <span className="text-[10px] text-secondary">Carrier: India Post Speed Post / Registered Parcel</span>
             </div>
 
@@ -237,27 +249,39 @@ function TrackContent() {
             </div>
           </div>
 
-          {/* Consignment Live Query Card */}
-          <div className="rounded-xl border border-border bg-emerald-50/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Live API & Portal Query Options */}
+          <div className="rounded-xl border border-border bg-emerald-50/40 p-5 flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-emerald-950 flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-600 animate-ping"></span>
-                Official India Post Shipment Found
+                Active India Post Shipment Detected
               </span>
-              <span className="text-[11px] text-emerald-900 leading-relaxed max-w-lg">
-                Consignment <strong>{consignmentOnly}</strong> is an active India Post shipment. Click below to query live scan status, post office tracking updates, and delivery schedule on the official India Post portal.
+              <span className="text-[11px] text-emerald-900 leading-relaxed">
+                Consignment <strong>{consignmentOnly}</strong> is being processed by India Post. Choose an option below to view real-time location & article status:
               </span>
             </div>
 
-            <a
-              href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-xl bg-foreground px-5 py-3 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 flex-shrink-0 shadow-md"
-            >
-              <ExternalLink className="h-4 w-4 text-emerald-400" />
-              Track {consignmentOnly} on India Post
-            </a>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <a
+                href={`https://t.17track.net/en#nums=${consignmentOnly}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl bg-foreground px-5 py-3 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <ExternalLink className="h-4 w-4 text-emerald-400" />
+                Track Live on 17Track API
+              </a>
+
+              <a
+                href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-xl border border-foreground/30 bg-background px-5 py-3 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-border/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                <ExternalLink className="h-4 w-4 text-secondary" />
+                India Post Official Portal
+              </a>
+            </div>
           </div>
 
         </div>
