@@ -16,21 +16,34 @@ function TrackContent() {
   const [notFound, setNotFound] = useState(false);
 
   const performSearch = async (searchId: string) => {
-    const clean = searchId.trim();
-    if (!clean) return;
+    const rawClean = searchId.trim().replace(/^#/, '');
+    const cleanNoHyphens = rawClean.replace(/[^a-zA-Z0-9]/g, '');
+    if (!rawClean) return;
 
     setSearching(true);
     setNotFound(false);
     setOrderResult(null);
 
     try {
-      // Search D1 by order_number OR tracking_number
+      // Search D1 by order_number, tracking_number, or phone
       const res = await queryD1(
-        'SELECT * FROM orders WHERE LOWER(order_number) LIKE ? OR LOWER(tracking_number) LIKE ? LIMIT 1',
-        [`%${clean.toLowerCase()}%`, `%${clean.toLowerCase()}%`]
+        `SELECT * FROM orders 
+         WHERE LOWER(order_number) LIKE ? 
+            OR LOWER(COALESCE(tracking_number, '')) LIKE ? 
+            OR REPLACE(LOWER(order_number), '-', '') LIKE ? 
+            OR REPLACE(LOWER(COALESCE(tracking_number, '')), '-', '') LIKE ? 
+            OR customer_phone LIKE ? 
+         ORDER BY created_at DESC LIMIT 1`,
+        [
+          `%${rawClean.toLowerCase()}%`,
+          `%${rawClean.toLowerCase()}%`,
+          `%${cleanNoHyphens.toLowerCase()}%`,
+          `%${cleanNoHyphens.toLowerCase()}%`,
+          `%${cleanNoHyphens}%`
+        ]
       );
 
-      if (res.success && res.results.length > 0) {
+      if (res.success && res.results && res.results.length > 0) {
         setOrderResult(res.results[0]);
       } else {
         setNotFound(true);
@@ -54,13 +67,22 @@ function TrackContent() {
     performSearch(query);
   };
 
+  let itemsList: any[] = [];
+  if (orderResult && orderResult.items) {
+    try {
+      itemsList = typeof orderResult.items === 'string' ? JSON.parse(orderResult.items) : orderResult.items;
+    } catch (e) {
+      itemsList = [];
+    }
+  }
+
   return (
     <div className="mx-auto max-w-[900px] px-4 py-12 sm:px-6 lg:px-8 flex flex-col gap-10">
       
       {/* Page Header */}
       <div className="flex flex-col items-center text-center gap-3">
         <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-secondary">
-          India Post Shipment Tracking
+          Shipment Tracking Portal
         </span>
         <h1 className="text-3xl font-light tracking-wider uppercase text-foreground">
           Track Your Order
@@ -81,7 +103,7 @@ function TrackContent() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Enter Order # or Tracking #"
-            className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-4 text-xs text-foreground placeholder:text-secondary/50 focus:border-foreground/40 focus:outline-none transition-colors"
+            className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-4 text-xs text-foreground placeholder:text-secondary/50 focus:border-foreground/40 focus:outline-none transition-colors font-mono"
           />
         </div>
         <button
@@ -101,12 +123,12 @@ function TrackContent() {
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">Order Number</span>
-              <h2 className="text-xl font-bold text-foreground">{orderResult.order_number}</h2>
+              <h2 className="text-xl font-bold text-foreground font-mono">{orderResult.order_number}</h2>
               <span className="text-[10px] text-secondary">Placed on {new Date(orderResult.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+              <span className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 ${
                 orderResult.shipping_status === 'delivered'
                   ? 'bg-green-50 border border-green-200 text-green-800'
                   : orderResult.shipping_status === 'shipped'
@@ -114,9 +136,9 @@ function TrackContent() {
                     : 'bg-amber-50 border border-amber-200 text-amber-800'
               }`}>
                 {orderResult.shipping_status === 'delivered' ? (
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
                 ) : (
-                  <Clock className="h-4 w-4" />
+                  <Clock className="h-4 w-4 text-amber-600" />
                 )}
                 Status: {orderResult.shipping_status}
               </span>
@@ -134,16 +156,39 @@ function TrackContent() {
 
             {orderResult.tracking_number && (
               <a
-                href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+                href={`https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-xl bg-foreground px-4 py-2.5 text-xs font-semibold text-background hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Track on India Post Official Portal
+                Track on India Post
               </a>
             )}
           </div>
+
+          {/* Items Summary Breakdown */}
+          {itemsList.length > 0 && (
+            <div className="flex flex-col gap-3 border-t border-border pt-4">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-secondary">Ordered Items</span>
+              <div className="divide-y divide-border/60">
+                {itemsList.map((it: any, idx: number) => (
+                  <div key={idx} className="py-2.5 flex justify-between items-center text-xs">
+                    <div>
+                      <span className="font-semibold text-foreground">{it.name || it.product?.name || 'Jewellery Item'}</span>
+                      {it.selectedSize && <span className="ml-2 text-[10px] text-secondary">Size: {it.selectedSize}</span>}
+                      {it.quantity > 1 && <span className="ml-2 text-[10px] text-secondary">x{it.quantity}</span>}
+                    </div>
+                    <span className="font-semibold text-foreground">₹{((it.price || it.product?.price || 0) * (it.quantity || 1)).toLocaleString('en-IN')}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between items-center text-xs font-bold border-t border-border pt-3 mt-1 text-foreground">
+                <span>Total Paid</span>
+                <span>₹{(orderResult.total_amount || 0).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          )}
 
           {/* Customer Address Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs border-t border-border pt-4">
