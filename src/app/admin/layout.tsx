@@ -10,20 +10,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  // If we are on the login page, render only the standalone login form with NO sidebar
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
 
   React.useEffect(() => {
-    if (pathname !== '/admin/login') {
-      const hasCookie = typeof document !== 'undefined' && document.cookie.includes('thaarakam_admin_session=authenticated');
-      const hasStorage = typeof localStorage !== 'undefined' && localStorage.getItem('thaarakam_admin_session') === 'authenticated';
-      if (!hasCookie && !hasStorage) {
-        router.replace('/admin/login');
-      }
+    const hasCookie = typeof document !== 'undefined' && document.cookie.includes('thaarakam_admin_session=authenticated');
+    const hasStorage = typeof localStorage !== 'undefined' && localStorage.getItem('thaarakam_admin_session') === 'authenticated';
+    
+    if (hasCookie || hasStorage) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+      router.replace('/admin/login');
     }
   }, [pathname, router]);
 
-  // If we are on the login page, don't show the dashboard shell layout
-  if (pathname === '/admin/login') {
-    return <>{children}</>;
+  // Block rendering sidebar or dashboard content until authenticated
+  if (isAuthenticated === null || isAuthenticated === false) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-foreground border-t-transparent" />
+      </div>
+    );
   }
 
   const menuItems = [
