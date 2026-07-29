@@ -29,7 +29,26 @@ function ProductContent() {
         setLoading(true);
         setError(false);
 
-        // Fetch product and store settings in parallel directly from Supabase
+        // 1. Try loading from Cloudflare CDN static asset (0 BYTES Supabase Egress!)
+        try {
+          const res = await fetch('/data/products.json');
+          if (res.ok) {
+            const cdnData: Product[] = await res.json();
+            const found = cdnData.find((p) => p.id === id);
+            if (found) {
+              setProduct(found);
+              setDefaultDescription(
+                'Details\n• Material: 316L Stainless Steel\n• Finish: Anti-tarnish, High Polish\n• Lightweight & comfortable for all-day wear\n• Hypoallergenic & skin-friendly\n\nCare\nAvoid harsh chemicals and perfumes.\nWipe gently after use and store in a dry place for extended shine.'
+              );
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('CDN asset load fallback:', e);
+        }
+
+        // 2. Fallback to Supabase if newly added or not in CDN file
         const [productRes, settingsRes] = await Promise.all([
           supabase.from('products').select('*').eq('id', id).single(),
           supabase.from('settings').select('*').eq('id', 1).single()

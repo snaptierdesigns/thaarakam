@@ -76,3 +76,39 @@ create policy "Allow public read access to reviews"
 create policy "Allow public insert to reviews"
     on public.reviews for insert
     with check (true);
+
+-- Add size customization columns to products
+alter table public.products add column if not exists custom_sizes integer[] default '{}'::integer[];
+alter table public.products add column if not exists sizes_out_of_stock integer[] default '{}'::integer[];
+
+-- Create orders table
+create table if not exists public.orders (
+    id uuid default gen_random_uuid() primary key,
+    order_number text not null unique,
+    customer_name text not null,
+    customer_phone text not null,
+    customer_email text,
+    country text default 'India' not null,
+    address text not null,
+    city text not null,
+    state text not null,
+    pincode text not null,
+    items jsonb not null,
+    subtotal numeric not null,
+    shipping_fee numeric not null,
+    total_amount numeric not null,
+    payment_status text default 'paid' not null check (payment_status in ('pending', 'paid', 'failed', 'refunded')),
+    razorpay_order_id text,
+    razorpay_payment_id text,
+    shipping_status text default 'processing' not null check (shipping_status in ('processing', 'shipped', 'delivered', 'cancelled')),
+    tracking_number text,
+    carrier_name text default 'India Post',
+    notes text,
+    created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS and public policies for orders
+alter table public.orders enable row level security;
+create policy "Allow public insert to orders" on public.orders for insert with check (true);
+create policy "Allow public read access to orders" on public.orders for select using (true);
+create policy "Allow service role full access to orders" on public.orders for all using (true);

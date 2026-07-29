@@ -50,21 +50,24 @@ export default function ShopClient({ products }: ShopClientProps) {
     setSelectedCategory(categoryParam);
   }, [categoryParam]);
 
-  // Fetch live products directly from Supabase on mount (with light sessionStorage caching to save 98% database egress)
+  // Load products directly from Cloudflare CDN static asset (0 BYTES Supabase Egress!)
   useEffect(() => {
-    async function fetchLiveProducts() {
+    async function fetchCdnProducts() {
       try {
-        const cached = typeof window !== 'undefined' ? sessionStorage.getItem('thaarakam_shop_cache') : null;
-        if (cached) {
-          try {
-            const parsed = JSON.parse(cached);
-            if (parsed.timestamp && Date.now() - parsed.timestamp < 3 * 60 * 1000 && parsed.data?.length > 0) {
-              setProductsList(parsed.data);
-              return;
-            }
-          } catch (e) {}
+        const res = await fetch('/data/products.json');
+        if (res.ok) {
+          const cdnData = await res.json();
+          if (cdnData && Array.isArray(cdnData) && cdnData.length > 0) {
+            setProductsList(cdnData as Product[]);
+            return;
+          }
         }
+      } catch (e) {
+        console.warn('CDN static asset load fallback to Supabase:', e);
+      }
 
+      // Fallback to Supabase only if CDN asset fails
+      try {
         const { data } = await supabase
           .from('products')
           .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count')
@@ -73,15 +76,12 @@ export default function ShopClient({ products }: ShopClientProps) {
 
         if (data && data.length > 0) {
           setProductsList(data as Product[]);
-          try {
-            sessionStorage.setItem('thaarakam_shop_cache', JSON.stringify({ timestamp: Date.now(), data }));
-          } catch (e) {}
         }
       } catch (e) {
-        console.error('Error fetching live products for Shop:', e);
+        console.error('Error fetching products:', e);
       }
     }
-    fetchLiveProducts();
+    fetchCdnProducts();
   }, []);
 
   // Set category filter and update URL parameter
