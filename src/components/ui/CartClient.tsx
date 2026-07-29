@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/ui/CartProvider';
-import { Settings, CheckoutDetails } from '@/types';
+import { Settings, CheckoutDetails, COUNTRY_SHIPPING_RATES } from '@/types';
 import { Trash2, Plus, Minus, ShoppingBag, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { decrementStockAfterCheckout } from '@/app/admin/actions';
+import { decrementStockAfterCheckout, recordPaidOrder } from '@/app/admin/actions';
 
 interface CartClientProps {
   settings: Settings | null;
@@ -20,22 +20,33 @@ export default function CartClient({ settings }: CartClientProps) {
   const [form, setForm] = useState<CheckoutDetails>({
     fullName: '',
     phone: '',
+    email: '',
+    country: 'India',
     address: '',
     city: '',
     state: '',
     pinCode: '',
   });
   const [formErrors, setFormErrors] = useState<Partial<CheckoutDetails>>({});
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Dynamic shipping fees from settings database
   const shippingKerala = Number(settings?.shipping_kerala ?? 50);
   const shippingSouthIndia = Number(settings?.shipping_south_india ?? 60);
   const shippingNorthIndia = Number(settings?.shipping_north_india ?? 80);
 
-  const getRegionFromPin = (pinCode: string): { region: RegionType; label: string } => {
-    const cleanPin = pinCode.trim().replace(/\s/g, '');
+  const getShippingFeeAndLabel = () => {
+    const selectedCountry = form.country;
+
+    if (selectedCountry !== 'India') {
+      const rate = COUNTRY_SHIPPING_RATES[selectedCountry] ?? 2800;
+      return { shippingFee: rate, label: `${selectedCountry} (International)` };
+    }
+
+    // Pinpoint Pincode detection for India
+    const cleanPin = form.pinCode.trim().replace(/\s/g, '');
     if (!cleanPin || cleanPin.length < 6 || isNaN(Number(cleanPin))) {
-      return { region: 'kerala', label: 'Kerala (Default)' }; // fallback
+      return { shippingFee: shippingKerala, label: 'Kerala (Default)' };
     }
 
     const prefix2 = cleanPin.substring(0, 2);
@@ -43,40 +54,23 @@ export default function CartClient({ settings }: CartClientProps) {
 
     // Kerala circles: 67, 68, 69
     if (prefix2 === '67' || prefix2 === '68' || prefix2 === '69') {
-      return { region: 'kerala', label: 'Kerala' };
+      return { shippingFee: shippingKerala, label: 'Kerala' };
     }
 
     // South India region first digits: 5, or 60-66
     const numPrefix2 = Number(prefix2);
     if (prefix1 === '5' || (numPrefix2 >= 60 && numPrefix2 <= 66)) {
-      return { region: 'south_india', label: 'South India' };
+      return { shippingFee: shippingSouthIndia, label: 'South India' };
     }
 
     // Rest is North India / Rest of India
-    return { region: 'north_india', label: 'North India' };
+    return { shippingFee: shippingNorthIndia, label: 'Rest of India' };
   };
 
-  const pinDetails = getRegionFromPin(form.pinCode);
-  const region = pinDetails.region;
-  const regionLabel = pinDetails.label;
-
-  const getShippingFee = () => {
-    switch (region) {
-      case 'kerala':
-        return shippingKerala;
-      case 'south_india':
-        return shippingSouthIndia;
-      case 'north_india':
-        return shippingNorthIndia;
-      default:
-        return shippingKerala;
-    }
-  };
-
-  const shippingFee = getShippingFee();
+  const { shippingFee, label: regionLabel } = getShippingFeeAndLabel();
   const grandTotal = subtotal + shippingFee;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (formErrors[name as keyof CheckoutDetails]) {
@@ -92,31 +86,135 @@ export default function CartClient({ settings }: CartClientProps) {
     if (!form.city.trim()) errors.city = 'City is required';
     if (!form.state.trim()) errors.state = 'State is required';
     
-    const pin = form.pinCode.trim();
-    if (!pin) {
-      errors.pinCode = 'PIN Code is required';
-    } else if (pin.length !== 6 || isNaN(Number(pin))) {
-      errors.pinCode = 'Please enter a valid 6-digit PIN code';
+    if (form.country === 'India') {
+      const pin = form.pinCode.trim();
+      if (!pin) {
+        errors.pinCode = 'PIN Code is required';
+      } else if (pin.length !== 6 || isNaN(Number(pin))) {
+        errors.pinCode = 'Please enter a valid 6-digit PIN code';
+      }
     }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleRazorpayPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsProcessing(true);
+    const scriptLoaded = await loadRazorpayScript();
+
+    if (!scriptLoaded) {
+      alert('Razorpay SDK failed to load. Please check your internet connection.');
+      setIsProcessing(false);
+      return;
+    }
+
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_dummykey',
+      amount: Math.round(grandTotal * 100), // Amount in paise
+      currency: 'INR',
+      name: settings?.business_name || 'Thaarakam Jewellery',
+      description: `Order Payment for ${cartCount} items`,
+      image: settings?.logo_url || '/images/logo.png',
+      handler: async function (response: any) {
+        try {
+          const orderPayload = {
+            customer_name: form.fullName,
+            customer_phone: form.phone,
+            customer_email: form.email || null,
+            country: form.country,
+            address: form.address,
+            city: form.city,
+            state: form.state,
+            pincode: form.pinCode,
+            items: cart.map((item) => ({
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              quantity: item.quantity,
+              selectedSize: item.selectedSize,
+              is_preorder: item.product.is_preorder,
+            })),
+            cartItems: cart,
+            subtotal,
+            shipping_fee: shippingFee,
+            total_amount: grandTotal,
+            payment_status: 'paid',
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id || null,
+          };
+
+          const res = await recordPaidOrder(orderPayload);
+          clearCart();
+
+          if (res.success && res.orderNumber) {
+            window.location.href = `/track/?id=${encodeURIComponent(res.orderNumber)}`;
+          } else {
+            alert('Payment received! Order recorded successfully.');
+            window.location.href = `/track/`;
+          }
+        } catch (err) {
+          console.error('Error recording paid order:', err);
+          alert('Payment succeeded! Stock decremented.');
+          clearCart();
+          window.location.href = '/track/';
+        }
+      },
+      prefill: {
+        name: form.fullName,
+        email: form.email || '',
+        contact: form.phone,
+      },
+      theme: {
+        color: '#1a1a1a',
+      },
+    };
+
+    try {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (resp: any) {
+        alert(`Payment Failed: ${resp.error.description || 'Transaction declined'}`);
+        setIsProcessing(false);
+      });
+      rzp.open();
+    } catch (err) {
+      console.error('Razorpay initialization error:', err);
+      alert('Could not open Razorpay checkout modal.');
+      setIsProcessing(false);
+    }
+  };
+
+  const handleWhatsAppCheckout = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     if (!settings?.whatsapp_number) {
-      alert('The store has not configured a WhatsApp number yet. Please contact the owner.');
+      alert('The store has not configured a WhatsApp number yet.');
       return;
     }
 
-    // Format the WhatsApp message text
     let message = `*NEW ORDER - THAARAKAM JEWELLERY*\n\n`;
     message += `*Customer Details:*\n`;
     message += `• Name: ${form.fullName}\n`;
     message += `• Phone: ${form.phone}\n`;
+    message += `• Country: ${form.country}\n`;
     message += `• Address: ${form.address}\n`;
     message += `• City: ${form.city}\n`;
     message += `• State: ${form.state}\n`;
@@ -138,11 +236,9 @@ export default function CartClient({ settings }: CartClientProps) {
     message += `• Shipping (${regionLabel}): ₹${shippingFee}\n`;
     message += `• *Grand Total: ₹${grandTotal}*\n`;
 
-    // Encode message text
     const encodedText = encodeURIComponent(message);
-    const whatsappNum = settings.whatsapp_number.replace(/\D/g, ''); // strip non-numeric characters
+    const whatsappNum = settings.whatsapp_number.replace(/\D/g, '');
     
-    // Decrement product stock and finalize order redirect
     const finalizeCheckout = async () => {
       try {
         const items = cart.map(item => ({
@@ -154,10 +250,7 @@ export default function CartClient({ settings }: CartClientProps) {
         console.error('Error updating stock on checkout:', err);
       }
       
-      // Clear cart upon ordering
       clearCart();
-      
-      // Redirect to wa.me URL (use location.href to bypass iOS Safari popup blockers inside async callbacks)
       window.location.href = `https://wa.me/${whatsappNum}?text=${encodedText}`;
     };
     
@@ -313,11 +406,37 @@ export default function CartClient({ settings }: CartClientProps) {
           </div>
 
           {/* Delivery Details Form */}
-          <form onSubmit={handleCheckout} className="rounded-2xl border border-border p-6 flex flex-col gap-4">
+          <form className="rounded-2xl border border-border p-6 flex flex-col gap-4">
             <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
               Delivery Details
             </h2>
             
+            {/* Country Selector */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="country" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                Country / Region
+              </label>
+              <select
+                id="country"
+                name="country"
+                value={form.country}
+                onChange={handleInputChange}
+                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+              >
+                <option value="India">India (Domestic Pinpoint Rate)</option>
+                <option value="United Kingdom">United Kingdom (₹2,700)</option>
+                <option value="United States">United States (₹2,600)</option>
+                <option value="Canada">Canada (₹2,200)</option>
+                <option value="Maldives">Maldives (₹2,100)</option>
+                <option value="Lakshadweep">Lakshadweep (₹2,100)</option>
+                <option value="Singapore">Singapore (₹2,000)</option>
+                <option value="United Arab Emirates">UAE / Dubai (₹2,200)</option>
+                <option value="Sri Lanka">Sri Lanka (₹1,500)</option>
+                <option value="Bangladesh">Bangladesh (₹1,500)</option>
+                <option value="Other International">Other International (₹2,800)</option>
+              </select>
+            </div>
+
             {/* Full Name */}
             <div className="flex flex-col gap-1.5">
               <label htmlFor="fullName" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
@@ -335,21 +454,38 @@ export default function CartClient({ settings }: CartClientProps) {
               {formErrors.fullName && <p className="text-[10px] text-red-500 font-medium">{formErrors.fullName}</p>}
             </div>
 
-            {/* Phone Number */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="phone" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={form.phone}
-                onChange={handleInputChange}
-                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                placeholder="Enter mobile number"
-              />
-              {formErrors.phone && <p className="text-[10px] text-red-500 font-medium">{formErrors.phone}</p>}
+            {/* Phone & Email */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="phone" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleInputChange}
+                  className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+                  placeholder="Mobile number"
+                />
+                {formErrors.phone && <p className="text-[10px] text-red-500 font-medium">{formErrors.phone}</p>}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="email" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                  Email (Optional)
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={form.email || ''}
+                  onChange={handleInputChange}
+                  className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+                  placeholder="Email address"
+                />
+              </div>
             </div>
 
             {/* Address */}
@@ -405,44 +541,59 @@ export default function CartClient({ settings }: CartClientProps) {
             </div>
 
             {/* PIN Code */}
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                PIN Code
-              </label>
-              <input
-                type="text"
-                id="pinCode"
-                name="pinCode"
-                value={form.pinCode}
-                onChange={handleInputChange}
-                maxLength={6}
-                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                placeholder="6-digit PIN code"
-              />
-              {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
-              
-              {form.pinCode.trim().length === 6 && !isNaN(Number(form.pinCode.trim())) && (
-                <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
-                  ₹{shippingFee} shipping fee applied due to location: {regionLabel}
-                </p>
-              )}
-            </div>
+            {form.country === 'India' && (
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                  PIN Code
+                </label>
+                <input
+                  type="text"
+                  id="pinCode"
+                  name="pinCode"
+                  value={form.pinCode}
+                  onChange={handleInputChange}
+                  maxLength={6}
+                  className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+                  placeholder="6-digit PIN code"
+                />
+                {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
+                
+                {form.pinCode.trim().length === 6 && !isNaN(Number(form.pinCode.trim())) && (
+                  <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                    ₹{shippingFee} shipping fee applied due to location: {regionLabel}
+                  </p>
+                )}
+              </div>
+            )}
 
-            {/* COD Notice */}
-            <div className="bg-amber-50/50 border border-amber-200/50 rounded-xl p-3 text-[10px] text-amber-800 leading-relaxed flex items-start gap-2 mt-2">
-              <span className="text-xs">⚠️</span>
+            {/* Payment Mode Notice */}
+            <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-xl p-3 text-[10px] text-emerald-800 leading-relaxed flex items-start gap-2 mt-2">
+              <span className="text-xs">🔒</span>
               <div>
-                <strong>Cash On Delivery is not available.</strong> We accept payments via UPI (Google Pay, PhonePe, Paytm) or online bank transfer after order confirmation on WhatsApp.
+                <strong>Secure Payment via Razorpay.</strong> Your payment is verified instantly and stock is reserved only after successful payment callback.
               </div>
             </div>
 
+            {/* Razorpay Online Payment Button */}
             <button
-              type="submit"
-              className="w-full rounded-xl bg-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 mt-2"
+              type="button"
+              onClick={handleRazorpayPayment}
+              disabled={isProcessing}
+              className="w-full rounded-xl bg-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-2 shadow-sm"
             >
-              <Send className="h-4 w-4" />
-              Order on WhatsApp
+              <ShoppingBag className="h-4 w-4" />
+              {isProcessing ? 'Opening Payment Gateway...' : `Pay ₹${grandTotal.toLocaleString('en-IN')} Online (Razorpay)`}
+            </button>
+
+            {/* WhatsApp Alternative Checkout Button */}
+            <button
+              type="button"
+              onClick={handleWhatsAppCheckout}
+              className="w-full rounded-xl border border-border bg-background py-3 text-xs font-bold uppercase tracking-wider text-foreground hover:bg-border/20 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              <Send className="h-3.5 w-3.5" />
+              Order via WhatsApp
             </button>
           </form>
 

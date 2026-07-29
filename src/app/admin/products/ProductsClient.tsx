@@ -39,6 +39,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const [formFeatured, setFormFeatured] = useState(false);
   const [formRequiresSize, setFormRequiresSize] = useState(false);
   const [formMaxSize, setFormMaxSize] = useState('18');
+  const [formCustomSizes, setFormCustomSizes] = useState<number[]>([]);
+  const [formSizesOutOfStock, setFormSizesOutOfStock] = useState<number[]>([]);
+  const [newCustomSizeInput, setNewCustomSizeInput] = useState('');
   const [formPreorder, setFormPreorder] = useState(false);
   const [formAvailability, setFormAvailability] = useState<'in_stock' | 'out_of_stock'>('in_stock');
   const [formStockCount, setFormStockCount] = useState<string>('10');
@@ -89,6 +92,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormFeatured(false);
     setFormRequiresSize(false);
     setFormMaxSize('18');
+    setFormCustomSizes([]);
+    setFormSizesOutOfStock([]);
+    setNewCustomSizeInput('');
     setFormPreorder(false);
     setFormAvailability('in_stock');
     setFormStockCount('10');
@@ -107,12 +113,34 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormFeatured(product.is_featured);
     setFormRequiresSize(product.requires_size);
     setFormMaxSize(product.max_size?.toString() || '18');
+    setFormCustomSizes(Array.isArray(product.custom_sizes) ? product.custom_sizes : []);
+    setFormSizesOutOfStock(Array.isArray(product.sizes_out_of_stock) ? product.sizes_out_of_stock : []);
+    setNewCustomSizeInput('');
     setFormPreorder(product.is_preorder);
     setFormAvailability(product.availability);
     setFormStockCount(product.stock_count !== null && product.stock_count !== undefined ? product.stock_count.toString() : '');
     setStatus(null);
     setSaving(false);
     setView('edit');
+  };
+
+  const handleAddCustomSize = () => {
+    const val = parseInt(newCustomSizeInput.trim(), 10);
+    if (!isNaN(val) && val > 0 && !formCustomSizes.includes(val)) {
+      setFormCustomSizes((prev) => [...prev, val].sort((a, b) => a - b));
+      setNewCustomSizeInput('');
+    }
+  };
+
+  const handleRemoveCustomSize = (sizeToRemove: number) => {
+    setFormCustomSizes((prev) => prev.filter((s) => s !== sizeToRemove));
+    setFormSizesOutOfStock((prev) => prev.filter((s) => s !== sizeToRemove));
+  };
+
+  const handleToggleSizeOutOfStock = (sizeToToggle: number) => {
+    setFormSizesOutOfStock((prev) =>
+      prev.includes(sizeToToggle) ? prev.filter((s) => s !== sizeToToggle) : [...prev, sizeToToggle]
+    );
   };
 
   const handleBackToList = () => {
@@ -347,6 +375,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         is_featured: formFeatured,
         requires_size: formRequiresSize,
         max_size: formRequiresSize ? Number(formMaxSize || 18) : null,
+        custom_sizes: formCustomSizes,
+        sizes_out_of_stock: formSizesOutOfStock,
         is_preorder: formPreorder,
         availability: computedAvailability,
         stock_count: parsedStock,
@@ -753,31 +783,99 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                   />
                 </div>
 
-                {/* Requires Size Selector */}
-                <div className="flex flex-col gap-2">
+                {/* Requires Size Selector & Custom Size Builder */}
+                <div className="col-span-1 sm:col-span-2 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <label htmlFor="formRequiresSize" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                      Requires Size
+                      Requires Size Selection
                     </label>
                     <input
                       type="checkbox"
                       id="formRequiresSize"
                       checked={formRequiresSize}
                       onChange={(e) => setFormRequiresSize(e.target.checked)}
-                      className="accent-foreground h-4 w-4"
+                      className="accent-foreground h-4 w-4 cursor-pointer"
                     />
                   </div>
+
                   {formRequiresSize && (
-                    <div className="flex items-center gap-3 mt-1.5 animate-fadeIn duration-200">
-                      <span className="text-[10px] text-secondary whitespace-nowrap">Maximum Size (1-99):</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="99"
-                        value={formMaxSize}
-                        onChange={(e) => setFormMaxSize(e.target.value)}
-                        className="w-20 rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                      />
+                    <div className="flex flex-col gap-4 p-4 rounded-xl border border-border bg-border/5 animate-fadeIn duration-200">
+                      
+                      {/* Range max size option */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-secondary font-medium">Default Sequential Size Max (e.g. 1 to N):</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="99"
+                          value={formMaxSize}
+                          onChange={(e) => setFormMaxSize(e.target.value)}
+                          className="w-20 rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+                        />
+                      </div>
+
+                      {/* Arbitrary Custom Sizes Builder (+ / -) */}
+                      <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                          Arbitrary Sizes List (e.g., 5, 8, 9, 11, 12)
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={newCustomSizeInput}
+                            onChange={(e) => setNewCustomSizeInput(e.target.value)}
+                            placeholder="Size # (e.g. 8)"
+                            className="w-32 rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-foreground/40 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddCustomSize}
+                            className="rounded-xl bg-foreground px-3 py-1.5 text-xs font-semibold text-background hover:opacity-90 flex items-center gap-1"
+                          >
+                            <Plus className="h-3.5 w-3.5" /> Add Size
+                          </button>
+                        </div>
+
+                        {/* Configured Sizes List with Out-Of-Stock Toggles */}
+                        {formCustomSizes.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formCustomSizes.map((sz) => {
+                              const isSizeOut = formSizesOutOfStock.includes(sz);
+
+                              return (
+                                <div
+                                  key={sz}
+                                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                                    isSizeOut
+                                      ? 'bg-red-50 border-red-200 text-red-700'
+                                      : 'bg-background border-border text-foreground'
+                                  }`}
+                                >
+                                  <span>Size {sz}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleSizeOutOfStock(sz)}
+                                    className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${
+                                      isSizeOut ? 'bg-red-200 text-red-900' : 'bg-green-100 text-green-800'
+                                    }`}
+                                  >
+                                    {isSizeOut ? 'Out of Stock' : 'In Stock'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveCustomSize(sz)}
+                                    className="text-secondary hover:text-red-600 p-0.5"
+                                    title="Remove Size"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
                     </div>
                   )}
                 </div>

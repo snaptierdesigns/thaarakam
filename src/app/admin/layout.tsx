@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logoutAdmin } from './actions';
-import { LayoutDashboard, ShoppingBag, Layers, Settings, LogOut, Menu, X, ArrowLeft, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Layers, Settings, LogOut, Menu, X, ArrowLeft, MessageSquare, PackageCheck } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,6 +18,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const menuItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Orders', href: '/admin/orders', icon: PackageCheck },
     { name: 'Products', href: '/admin/products', icon: ShoppingBag },
     { name: 'Categories', href: '/admin/categories', icon: Layers },
     { name: 'Reviews', href: '/admin/reviews', icon: MessageSquare },

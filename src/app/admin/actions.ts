@@ -64,6 +64,8 @@ export async function saveProduct(productData: any, productId?: string) {
       is_featured: Boolean(productData.is_featured),
       requires_size: Boolean(productData.requires_size),
       max_size: productData.requires_size ? Number(productData.max_size || 18) : null,
+      custom_sizes: Array.isArray(productData.custom_sizes) ? productData.custom_sizes : [],
+      sizes_out_of_stock: Array.isArray(productData.sizes_out_of_stock) ? productData.sizes_out_of_stock : [],
       is_preorder: Boolean(productData.is_preorder),
       availability: productData.availability || 'in_stock',
       stock_count: productData.stock_count !== undefined && productData.stock_count !== null ? Number(productData.stock_count) : null,
@@ -166,6 +168,110 @@ export async function deleteReview(reviewId: string) {
   }
 }
 
+// Record Paid Order helper
+export async function recordPaidOrder(orderData: any) {
+  try {
+    const admin = getSupabaseAdmin();
+    const orderNumber = `THK-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const payload = {
+      order_number: orderNumber,
+      customer_name: orderData.customer_name,
+      customer_phone: orderData.customer_phone,
+      customer_email: orderData.customer_email || null,
+      country: orderData.country || 'India',
+      address: orderData.address,
+      city: orderData.city,
+      state: orderData.state,
+      pincode: orderData.pincode,
+      items: typeof orderData.items === 'string' ? orderData.items : JSON.stringify(orderData.items),
+      subtotal: Number(orderData.subtotal),
+      shipping_fee: Number(orderData.shipping_fee),
+      total_amount: Number(orderData.total_amount),
+      payment_status: orderData.payment_status || 'paid',
+      razorpay_order_id: orderData.razorpay_order_id || null,
+      razorpay_payment_id: orderData.razorpay_payment_id || null,
+      shipping_status: 'processing',
+      tracking_number: null,
+      carrier_name: 'India Post',
+      notes: orderData.notes || null,
+    };
+
+    const { data, error } = await admin
+      .from('orders')
+      .insert([payload])
+      .select();
+
+    if (error) {
+      console.error('Error inserting order into Supabase:', error);
+    }
+
+    // Decrement stock for ordered items
+    if (orderData.cartItems) {
+      await decrementStockAfterCheckout(orderData.cartItems.map((item: any) => ({
+        id: item.product?.id || item.id,
+        quantity: item.quantity,
+      })));
+    }
+
+    return { success: true, orderNumber, data: data?.[0] || payload };
+  } catch (err: any) {
+    console.error('Error recording paid order:', err);
+    return { success: false, error: err?.message || 'Order insertion error' };
+  }
+}
+
+// Fetch All Orders helper
+export async function getOrders() {
+  try {
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching orders:', error);
+      return { success: false, orders: [] };
+    }
+
+    return { success: true, orders: data || [] };
+  } catch (err: any) {
+    console.error('Error fetching orders:', err);
+    return { success: false, orders: [] };
+  }
+}
+
+// Update Order Shipping Status & Tracking helper
+export async function updateOrderShippingStatus(
+  orderId: string,
+  shipping_status: string,
+  tracking_number?: string
+) {
+  try {
+    const admin = getSupabaseAdmin();
+    const payload: any = { shipping_status };
+    if (tracking_number !== undefined) {
+      payload.tracking_number = tracking_number.trim();
+    }
+
+    const { error } = await admin
+      .from('orders')
+      .update(payload)
+      .eq('id', orderId);
+
+    if (error) {
+      console.error('Error updating order shipping status:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('Error updating order:', err);
+    return { success: false, error: err?.message || 'Update error' };
+  }
+}
+
 // Decrement stock after checkout helper
 export async function decrementStockAfterCheckout(items: { id: string; quantity: number }[]) {
   try {
@@ -196,3 +302,4 @@ export async function decrementStockAfterCheckout(items: { id: string; quantity:
     return { success: false, error: err?.message || 'Stock decrement error' };
   }
 }
+

@@ -115,9 +115,19 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   const isPreorder = currentProduct.is_preorder;
   const canAddToCart = !isOutOfStock || isPreorder;
 
-  // Generate sizes from 1 to max_size (if requires_size is true and max_size is set)
+  // Generate sizes list from custom_sizes OR max_size
+  const customSizesList = Array.isArray(currentProduct.custom_sizes) && currentProduct.custom_sizes.length > 0
+    ? currentProduct.custom_sizes
+    : [];
+
+  const sizesOutOfStockList = Array.isArray(currentProduct.sizes_out_of_stock)
+    ? currentProduct.sizes_out_of_stock
+    : [];
+
   const sizeOptions: number[] = [];
-  if (currentProduct.requires_size && currentProduct.max_size) {
+  if (customSizesList.length > 0) {
+    sizeOptions.push(...customSizesList);
+  } else if (currentProduct.requires_size && currentProduct.max_size) {
     for (let s = 1; s <= currentProduct.max_size; s++) {
       sizeOptions.push(s);
     }
@@ -143,6 +153,11 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
       return;
     }
 
+    if (selectedSize !== null && sizesOutOfStockList.includes(selectedSize)) {
+      alert(`Size ${selectedSize} is currently out of stock. Please select a different size.`);
+      return;
+    }
+
     addToCart(currentProduct, quantity, selectedSize);
     
     // Trigger visual button feedback
@@ -150,6 +165,23 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     setTimeout(() => {
       setAddedToCartFeedback(false);
     }, 2000);
+  };
+
+  // Handle Immediate Buy Now Action
+  const handleBuyNow = () => {
+    if (!canAddToCart) return;
+    if (currentProduct.requires_size && selectedSize === null) {
+      alert('Please select a size before proceeding to buy.');
+      return;
+    }
+
+    if (selectedSize !== null && sizesOutOfStockList.includes(selectedSize)) {
+      alert(`Size ${selectedSize} is currently out of stock.`);
+      return;
+    }
+
+    addToCart(currentProduct, quantity, selectedSize);
+    window.location.href = '/cart';
   };
 
   return (
@@ -290,22 +322,35 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
                 Select Size
               </span>
               <div className="flex flex-wrap gap-2">
-                {sizeOptions.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`h-9 w-9 rounded-full border text-xs font-medium transition-all ${
-                      selectedSize === size
-                        ? 'bg-foreground border-foreground text-background'
-                        : 'bg-background border-border text-foreground hover:border-foreground/40'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {sizeOptions.map((size) => {
+                  const isSizeOut = sizesOutOfStockList.includes(size);
+
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !isSizeOut && setSelectedSize(size)}
+                      disabled={isSizeOut}
+                      className={`relative h-9 px-3.5 rounded-full border text-xs font-medium transition-all ${
+                        isSizeOut
+                          ? 'bg-border/20 border-border text-secondary/40 cursor-not-allowed line-through'
+                          : selectedSize === size
+                            ? 'bg-foreground border-foreground text-background font-bold shadow-sm'
+                            : 'bg-background border-border text-foreground hover:border-foreground/40'
+                      }`}
+                      title={isSizeOut ? `Size ${size} is out of stock` : `Select size ${size}`}
+                    >
+                      {size}
+                      {isSizeOut && (
+                        <span className="absolute -top-1 -right-1 text-[8px] bg-red-100 text-red-700 font-bold px-1 rounded-full border border-red-200">
+                          Out
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
               {selectedSize === null && (
-                <p className="text-[10px] text-red-500 font-medium">* Please choose a size to continue</p>
+                <p className="text-[10px] text-red-500 font-medium">* Please choose an available size to continue</p>
               )}
             </div>
           )}
@@ -338,8 +383,8 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
             </div>
           )}
 
-          {/* Add to Cart Actions */}
-          <div className="mt-2 flex flex-col gap-3">
+          {/* Add to Cart & Buy Now Action Buttons */}
+          <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={handleAddToCart}
               disabled={!canAddToCart}
@@ -348,7 +393,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
                   ? 'bg-border text-secondary cursor-not-allowed'
                   : addedToCartFeedback
                     ? 'bg-green-700 text-background'
-                    : 'bg-foreground hover:opacity-90'
+                    : 'bg-foreground/90 hover:bg-foreground'
               }`}
             >
               {addedToCartFeedback ? (
@@ -364,6 +409,17 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
                 'Add to Cart'
               )}
             </button>
+
+            {/* Buy Now Button */}
+            {canAddToCart && (
+              <button
+                type="button"
+                onClick={handleBuyNow}
+                className="w-full rounded-xl bg-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+              >
+                Buy Now
+              </button>
+            )}
           </div>
 
           <hr className="border-border" />
