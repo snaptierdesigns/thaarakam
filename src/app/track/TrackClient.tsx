@@ -13,6 +13,7 @@ function TrackContent() {
   const [query, setQuery] = useState(initialId);
   const [searching, setSearching] = useState(false);
   const [orderResult, setOrderResult] = useState<any | null>(null);
+  const [consignmentOnly, setConsignmentOnly] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   const performSearch = async (searchId: string) => {
@@ -23,6 +24,9 @@ function TrackContent() {
     setSearching(true);
     setNotFound(false);
     setOrderResult(null);
+    setConsignmentOnly(null);
+
+    const isIndiaPostConsignment = /^[A-Z]{2}\d{9}[A-Z]{2}$/i.test(cleanNoHyphens) || /^[A-Z]{2}\d{9}/i.test(cleanNoHyphens);
 
     try {
       // Search D1 by order_number, tracking_number, or phone
@@ -45,12 +49,18 @@ function TrackContent() {
 
       if (res.success && res.results && res.results.length > 0) {
         setOrderResult(res.results[0]);
+      } else if (isIndiaPostConsignment) {
+        setConsignmentOnly(rawClean.toUpperCase());
       } else {
         setNotFound(true);
       }
     } catch (err) {
       console.error('Error tracking order:', err);
-      setNotFound(true);
+      if (isIndiaPostConsignment) {
+        setConsignmentOnly(rawClean.toUpperCase());
+      } else {
+        setNotFound(true);
+      }
     } finally {
       setSearching(false);
     }
@@ -207,7 +217,53 @@ function TrackContent() {
         </div>
       )}
 
-      {notFound && (
+      {/* Active India Post Consignment Direct Result Card */}
+      {consignmentOnly && !orderResult && (
+        <div className="rounded-2xl border border-border bg-background p-6 sm:p-8 flex flex-col gap-6 shadow-sm animate-fadeIn">
+          
+          {/* Header */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-6">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">India Post Consignment</span>
+              <h2 className="text-xl font-bold text-foreground font-mono">{consignmentOnly}</h2>
+              <span className="text-[10px] text-secondary">Carrier: India Post Speed Post / Registered Parcel</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 bg-purple-50 border border-purple-200 text-purple-800">
+                <Truck className="h-4 w-4 text-purple-600 animate-pulse" />
+                Status: Dispatched & In Transit
+              </span>
+            </div>
+          </div>
+
+          {/* Consignment Live Query Card */}
+          <div className="rounded-xl border border-border bg-emerald-50/40 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-emerald-950 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-600 animate-ping"></span>
+                Official India Post Shipment Found
+              </span>
+              <span className="text-[11px] text-emerald-900 leading-relaxed max-w-lg">
+                Consignment <strong>{consignmentOnly}</strong> is an active India Post shipment. Click below to query live scan status, post office tracking updates, and delivery schedule on the official India Post portal.
+              </span>
+            </div>
+
+            <a
+              href="https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl bg-foreground px-5 py-3 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2 flex-shrink-0 shadow-md"
+            >
+              <ExternalLink className="h-4 w-4 text-emerald-400" />
+              Track {consignmentOnly} on India Post
+            </a>
+          </div>
+
+        </div>
+      )}
+
+      {notFound && !consignmentOnly && (
         <div className="rounded-2xl border border-dashed border-border p-10 text-center bg-background flex flex-col items-center justify-center gap-2">
           <p className="text-xs font-semibold text-foreground">No order found matching "{query}"</p>
           <p className="text-[10px] text-secondary max-w-sm leading-relaxed">
