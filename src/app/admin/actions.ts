@@ -1,4 +1,4 @@
-import { getSupabaseAdmin, supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Settings } from '@/types';
 
 // Admin Login helper
@@ -33,18 +33,24 @@ export async function logoutAdmin() {
 // Update settings helper
 export async function updateStoreSettings(settingsData: Partial<Settings>) {
   try {
-    const admin = getSupabaseAdmin();
-    const { error } = await admin
-      .from('settings')
-      .update(settingsData)
-      .eq('id', 1);
+    const fields: string[] = [];
+    const params: any[] = [];
 
-    if (error) {
-      console.error('Error updating settings:', error);
-      return { success: false, error: error.message };
-    }
+    if (settingsData.business_name !== undefined) { fields.push('business_name = ?'); params.push(settingsData.business_name); }
+    if (settingsData.logo_url !== undefined) { fields.push('logo_url = ?'); params.push(settingsData.logo_url); }
+    if (settingsData.whatsapp_number !== undefined) { fields.push('whatsapp_number = ?'); params.push(settingsData.whatsapp_number); }
+    if (settingsData.store_email !== undefined) { fields.push('store_email = ?'); params.push(settingsData.store_email); }
+    if (settingsData.shipping_kerala !== undefined) { fields.push('shipping_kerala = ?'); params.push(Number(settingsData.shipping_kerala)); }
+    if (settingsData.shipping_south_india !== undefined) { fields.push('shipping_south_india = ?'); params.push(Number(settingsData.shipping_south_india)); }
+    if (settingsData.shipping_north_india !== undefined) { fields.push('shipping_north_india = ?'); params.push(Number(settingsData.shipping_north_india)); }
+    if (settingsData.default_description !== undefined) { fields.push('default_description = ?'); params.push(settingsData.default_description); }
 
-    return { success: true };
+    if (fields.length === 0) return { success: true };
+
+    const sql = `UPDATE settings SET ${fields.join(', ')} WHERE id = 1`;
+    const res = await queryD1(sql, params);
+
+    return { success: res.success, error: res.error };
   } catch (error: any) {
     return { success: false, error: error?.message || 'Error updating settings' };
   }
@@ -53,47 +59,32 @@ export async function updateStoreSettings(settingsData: Partial<Settings>) {
 // Insert or Update Product helper
 export async function saveProduct(productData: any, productId?: string) {
   try {
-    const admin = getSupabaseAdmin();
-    
-    const payload = {
-      name: productData.name,
-      price: Number(productData.price),
-      category: productData.category,
-      images: productData.images,
-      description: productData.description || null,
-      is_featured: Boolean(productData.is_featured),
-      requires_size: Boolean(productData.requires_size),
-      max_size: productData.requires_size ? Number(productData.max_size || 18) : null,
-      custom_sizes: Array.isArray(productData.custom_sizes) ? productData.custom_sizes : [],
-      sizes_out_of_stock: Array.isArray(productData.sizes_out_of_stock) ? productData.sizes_out_of_stock : [],
-      is_preorder: Boolean(productData.is_preorder),
-      availability: productData.availability || 'in_stock',
-      stock_count: productData.stock_count !== undefined && productData.stock_count !== null ? Number(productData.stock_count) : null,
-    };
+    const name = productData.name;
+    const price = Number(productData.price);
+    const category = productData.category;
+    const images = typeof productData.images === 'string' ? productData.images : JSON.stringify(productData.images || []);
+    const description = productData.description || null;
+    const is_featured = productData.is_featured ? 1 : 0;
+    const requires_size = productData.requires_size ? 1 : 0;
+    const max_size = productData.requires_size ? Number(productData.max_size || 18) : null;
+    const custom_sizes = JSON.stringify(Array.isArray(productData.custom_sizes) ? productData.custom_sizes : []);
+    const sizes_out_of_stock = JSON.stringify(Array.isArray(productData.sizes_out_of_stock) ? productData.sizes_out_of_stock : []);
+    const is_preorder = productData.is_preorder ? 1 : 0;
+    const availability = productData.availability || 'in_stock';
+    const stock_count = productData.stock_count !== undefined && productData.stock_count !== null ? Number(productData.stock_count) : 10;
 
     if (productId) {
-      const { data, error } = await admin
-        .from('products')
-        .update(payload)
-        .eq('id', productId)
-        .select();
-
-      if (error) {
-        console.error('Error updating product:', error);
-        return { success: false, error: error.message };
-      }
-      return { success: true, data };
+      const sql = `UPDATE products SET name = ?, price = ?, category = ?, images = ?, description = ?, is_featured = ?, requires_size = ?, max_size = ?, custom_sizes = ?, sizes_out_of_stock = ?, is_preorder = ?, availability = ?, stock_count = ? WHERE id = ?`;
+      const params = [name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, productId];
+      const res = await queryD1(sql, params);
+      return { success: res.success, error: res.error };
     } else {
-      const { data, error } = await admin
-        .from('products')
-        .insert([payload])
-        .select();
-
-      if (error) {
-        console.error('Error inserting product:', error);
-        return { success: false, error: error.message };
-      }
-      return { success: true, data };
+      const newId = crypto.randomUUID();
+      const createdAt = new Date().toISOString();
+      const sql = `INSERT INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      const params = [newId, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, createdAt];
+      const res = await queryD1(sql, params);
+      return { success: res.success, error: res.error };
     }
   } catch (error: any) {
     console.error('Unexpected error saving product:', error);
@@ -104,18 +95,8 @@ export async function saveProduct(productData: any, productId?: string) {
 // Delete Product helper
 export async function deleteProduct(productId: string) {
   try {
-    const admin = getSupabaseAdmin();
-    const { error } = await admin
-      .from('products')
-      .delete()
-      .eq('id', productId);
-
-    if (error) {
-      console.error('Error deleting product:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
+    const res = await queryD1('DELETE FROM products WHERE id = ?', [productId]);
+    return { success: res.success, error: res.error };
   } catch (error: any) {
     console.error('Unexpected error deleting product:', error);
     return { success: false, error: error?.message || 'Server error' };
@@ -130,21 +111,12 @@ export async function addReviewByAdmin(reviewData: {
   comment?: string;
 }) {
   try {
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin
-      .from('reviews')
-      .insert([{
-        product_id: reviewData.product_id || null,
-        reviewer_name: reviewData.reviewer_name,
-        rating: Number(reviewData.rating),
-        comment: reviewData.comment || '',
-      }])
-      .select();
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true, data };
+    const newId = crypto.randomUUID();
+    const createdAt = new Date().toISOString();
+    const sql = `INSERT INTO reviews (id, product_id, reviewer_name, rating, comment, is_verified, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)`;
+    const params = [newId, reviewData.product_id || null, reviewData.reviewer_name, Number(reviewData.rating), reviewData.comment || '', createdAt];
+    const res = await queryD1(sql, params);
+    return { success: res.success, error: res.error };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Failed to add review' };
   }
@@ -153,16 +125,8 @@ export async function addReviewByAdmin(reviewData: {
 // Delete Review helper
 export async function deleteReview(reviewId: string) {
   try {
-    const admin = getSupabaseAdmin();
-    const { error } = await admin
-      .from('reviews')
-      .delete()
-      .eq('id', reviewId);
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
+    const res = await queryD1('DELETE FROM reviews WHERE id = ?', [reviewId]);
+    return { success: res.success, error: res.error };
   } catch (err: any) {
     return { success: false, error: err?.message || 'Failed to delete review' };
   }
@@ -171,40 +135,36 @@ export async function deleteReview(reviewId: string) {
 // Record Paid Order helper
 export async function recordPaidOrder(orderData: any) {
   try {
-    const admin = getSupabaseAdmin();
+    const newId = crypto.randomUUID();
     const orderNumber = `THK-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+    const createdAt = new Date().toISOString();
 
-    const payload = {
-      order_number: orderNumber,
-      customer_name: orderData.customer_name,
-      customer_phone: orderData.customer_phone,
-      customer_email: orderData.customer_email || null,
-      country: orderData.country || 'India',
-      address: orderData.address,
-      city: orderData.city,
-      state: orderData.state,
-      pincode: orderData.pincode,
-      items: typeof orderData.items === 'string' ? orderData.items : JSON.stringify(orderData.items),
-      subtotal: Number(orderData.subtotal),
-      shipping_fee: Number(orderData.shipping_fee),
-      total_amount: Number(orderData.total_amount),
-      payment_status: orderData.payment_status || 'paid',
-      razorpay_order_id: orderData.razorpay_order_id || null,
-      razorpay_payment_id: orderData.razorpay_payment_id || null,
-      shipping_status: 'processing',
-      tracking_number: null,
-      carrier_name: 'India Post',
-      notes: orderData.notes || null,
-    };
+    const itemsStr = typeof orderData.items === 'string' ? orderData.items : JSON.stringify(orderData.items);
 
-    const { data, error } = await admin
-      .from('orders')
-      .insert([payload])
-      .select();
+    const sql = `INSERT INTO orders (id, order_number, customer_name, customer_phone, customer_email, country, address, city, state, pincode, items, subtotal, shipping_fee, total_amount, payment_status, razorpay_order_id, razorpay_payment_id, shipping_status, tracking_number, carrier_name, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'processing', NULL, 'India Post', ?, ?)`;
+    const params = [
+      newId,
+      orderNumber,
+      orderData.customer_name,
+      orderData.customer_phone,
+      orderData.customer_email || null,
+      orderData.country || 'India',
+      orderData.address,
+      orderData.city,
+      orderData.state,
+      orderData.pincode,
+      itemsStr,
+      Number(orderData.subtotal),
+      Number(orderData.shipping_fee),
+      Number(orderData.total_amount),
+      orderData.payment_status || 'paid',
+      orderData.razorpay_order_id || null,
+      orderData.razorpay_payment_id || null,
+      orderData.notes || null,
+      createdAt
+    ];
 
-    if (error) {
-      console.error('Error inserting order into Supabase:', error);
-    }
+    const res = await queryD1(sql, params);
 
     // Decrement stock for ordered items
     if (orderData.cartItems) {
@@ -214,7 +174,7 @@ export async function recordPaidOrder(orderData: any) {
       })));
     }
 
-    return { success: true, orderNumber, data: data?.[0] || payload };
+    return { success: res.success, orderNumber, error: res.error };
   } catch (err: any) {
     console.error('Error recording paid order:', err);
     return { success: false, error: err?.message || 'Order insertion error' };
@@ -224,18 +184,8 @@ export async function recordPaidOrder(orderData: any) {
 // Fetch All Orders helper
 export async function getOrders() {
   try {
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching orders:', error);
-      return { success: false, orders: [] };
-    }
-
-    return { success: true, orders: data || [] };
+    const res = await queryD1('SELECT * FROM orders ORDER BY created_at DESC');
+    return { success: res.success, orders: res.results || [] };
   } catch (err: any) {
     console.error('Error fetching orders:', err);
     return { success: false, orders: [] };
@@ -249,23 +199,19 @@ export async function updateOrderShippingStatus(
   tracking_number?: string
 ) {
   try {
-    const admin = getSupabaseAdmin();
-    const payload: any = { shipping_status };
+    let sql = `UPDATE orders SET shipping_status = ?`;
+    const params: any[] = [shipping_status];
+
     if (tracking_number !== undefined) {
-      payload.tracking_number = tracking_number.trim();
+      sql += `, tracking_number = ?`;
+      params.push(tracking_number.trim());
     }
 
-    const { error } = await admin
-      .from('orders')
-      .update(payload)
-      .eq('id', orderId);
+    sql += ` WHERE id = ?`;
+    params.push(orderId);
 
-    if (error) {
-      console.error('Error updating order shipping status:', error);
-      return { success: false, error: error.message };
-    }
-
-    return { success: true };
+    const res = await queryD1(sql, params);
+    return { success: res.success, error: res.error };
   } catch (err: any) {
     console.error('Error updating order:', err);
     return { success: false, error: err?.message || 'Update error' };
@@ -275,25 +221,15 @@ export async function updateOrderShippingStatus(
 // Decrement stock after checkout helper
 export async function decrementStockAfterCheckout(items: { id: string; quantity: number }[]) {
   try {
-    const admin = getSupabaseAdmin();
     for (const item of items) {
-      const { data: prod } = await supabase
-        .from('products')
-        .select('stock_count')
-        .eq('id', item.id)
-        .single();
+      const prodRes = await queryD1('SELECT stock_count FROM products WHERE id = ?', [item.id]);
+      const prod = prodRes.results[0];
 
       if (prod && prod.stock_count !== null && prod.stock_count !== undefined) {
         const newStock = Math.max(0, prod.stock_count - item.quantity);
         const newAvailability = newStock === 0 ? 'out_of_stock' : 'in_stock';
 
-        await admin
-          .from('products')
-          .update({
-            stock_count: newStock,
-            availability: newAvailability,
-          })
-          .eq('id', item.id);
+        await queryD1('UPDATE products SET stock_count = ?, availability = ? WHERE id = ?', [newStock, newAvailability, item.id]);
       }
     }
     return { success: true };
@@ -302,4 +238,3 @@ export async function decrementStockAfterCheckout(items: { id: string; quantity:
     return { success: false, error: err?.message || 'Stock decrement error' };
   }
 }
-

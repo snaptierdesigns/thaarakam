@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Product, CATEGORIES } from '@/types';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { Search, Plus, Trash2, Edit, Upload, X, ArrowLeft, Save, Star, RefreshCw, Layers } from 'lucide-react';
+import { queryD1 } from '@/lib/d1';
 
 interface ProductsClientProps {
   initialProducts: Product[];
@@ -15,12 +16,10 @@ type ViewType = 'list' | 'add' | 'edit';
 export default function ProductsClient({ initialProducts }: ProductsClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const initialAction = searchParams.get('action');
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
-  // Read action from query params (e.g. from dashboard quick actions)
-  const actionParam = searchParams.get('action');
-
-  const [view, setView] = useState<ViewType>('list');
+  const [view, setView] = useState<ViewType>(initialAction === 'add' ? 'add' : 'list');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   
   // Search and Filter State
@@ -53,14 +52,17 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('thaarakam_shop_cache');
       }
-      const admin = getSupabaseAdmin();
-      const { data } = await admin
-        .from('products')
-        .select('*')
-        .neq('name', 'General Store Review Placeholder')
-        .order('created_at', { ascending: false });
-      if (data) {
-        setProductsList(data as Product[]);
+      const res = await queryD1("SELECT * FROM products WHERE name != 'General Store Review Placeholder' ORDER BY created_at DESC");
+      if (res.success && res.results) {
+        const parsed = res.results.map((p: any) => {
+          try {
+            p.images = typeof p.images === 'string' ? JSON.parse(p.images) : p.images;
+            p.custom_sizes = typeof p.custom_sizes === 'string' ? JSON.parse(p.custom_sizes) : p.custom_sizes;
+            p.sizes_out_of_stock = typeof p.sizes_out_of_stock === 'string' ? JSON.parse(p.sizes_out_of_stock) : p.sizes_out_of_stock;
+          } catch (e) {}
+          return p as Product;
+        });
+        setProductsList(parsed);
       }
     } catch (e) {
       console.error('Error fetching fresh products:', e);
@@ -77,10 +79,10 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
   // Check query parameters to automatically open the Add view
   useEffect(() => {
-    if (actionParam === 'add') {
+    if (initialAction === 'add') {
       handleAddClick();
     }
-  }, [actionParam]);
+  }, [initialAction]);
 
   const handleAddClick = () => {
     setEditingProduct(null);
@@ -149,7 +151,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
     setSaving(false);
     // Clear URL param if present
-    if (actionParam) {
+    if (initialAction) {
       router.replace('/admin/products');
     }
   };

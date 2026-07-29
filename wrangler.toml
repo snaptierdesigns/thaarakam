@@ -3,3 +3,8 @@ compatibility_date = "2025-01-01"
 
 [assets]
 directory = "out"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "thaarakam-db"
+database_id = "244387d1-3d22-40be-879b-93681f607432"

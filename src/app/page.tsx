@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import ProductCard from '@/components/ui/ProductCard';
-import { supabase, logSupabaseError } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Product, Settings, CATEGORIES } from '@/types';
 import { Search, Gem, Heart } from 'lucide-react';
 
@@ -12,49 +12,25 @@ export const revalidate = 86400;
 
 async function getHomepageData() {
   try {
-    const settingsPromise = supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single();
-
-    const featuredPromise = supabase
-      .from('products')
-      .select('*')
-      .eq('is_featured', true)
-      .neq('name', 'General Store Review Placeholder')
-      .order('created_at', { ascending: false })
-      .limit(4);
-
-    const newArrivalsPromise = supabase
-      .from('products')
-      .select('*')
-      .neq('name', 'General Store Review Placeholder')
-      .order('created_at', { ascending: false })
-      .limit(4);
-
     const [settingsRes, featuredRes, newArrivalsRes] = await Promise.all([
-      settingsPromise,
-      featuredPromise,
-      newArrivalsPromise,
+      queryD1('SELECT * FROM settings WHERE id = 1 LIMIT 1'),
+      queryD1("SELECT * FROM products WHERE is_featured = 1 AND name != 'General Store Review Placeholder' ORDER BY created_at DESC LIMIT 4"),
+      queryD1("SELECT * FROM products WHERE name != 'General Store Review Placeholder' ORDER BY created_at DESC LIMIT 4")
     ]);
+    const settings = (settingsRes.success && settingsRes.results[0]) ? settingsRes.results[0] as Settings : null;
 
-    if (settingsRes.error) {
-      logSupabaseError('Fetching settings for homepage', settingsRes.error);
-    }
+    const parseImgs = (items: any[]) => (items || []).map((p: any) => {
+      try { p.images = typeof p.images === 'string' ? JSON.parse(p.images) : p.images; } catch (e) {}
+      return p as Product;
+    });
 
-    if (featuredRes.error) {
-      logSupabaseError('Fetching featured products for homepage', featuredRes.error);
-    }
-
-    if (newArrivalsRes.error) {
-      logSupabaseError('Fetching new arrivals for homepage', newArrivalsRes.error);
-    }
+    const featuredProducts = parseImgs(featuredRes.results);
+    const newArrivals = parseImgs(newArrivalsRes.results);
 
     return {
-      settings: settingsRes.data as Settings | null,
-      featuredProducts: (featuredRes.data || []) as Product[],
-      newArrivals: (newArrivalsRes.data || []) as Product[],
+      settings,
+      featuredProducts,
+      newArrivals,
     };
   } catch (error) {
     console.error('Unexpected error fetching homepage data:', error);

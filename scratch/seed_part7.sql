@@ -1,0 +1,40 @@
+Tip: If you''re between two sizes, choose the larger size for a more comfortable fit.', 0, 1, 6, '[]', '[]', 0, 'in_stock', 3, '2026-07-02T20:54:35.056848+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('e1bb1b58-4d75-4a86-8487-c982ffdab4d6', 'Luna line ring ', 340, 'Rings', '["/images/products/1783025534526-0.jpeg"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 2, '2026-07-02T20:52:21.536445+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('11ce5bfd-ae77-4e1a-a593-62b22705d751', 'Wave spark ring ', 349, 'Rings', '["/images/products/1783025465702-0.jpeg"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 0, '2026-07-02T20:51:17.703694+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('fd788b9d-dd6e-4893-941c-860b675d146f', 'Nova ring ', 340, 'Rings', '["/images/products/1783025403256-0.jpeg"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 3, '2026-07-02T20:50:25.277877+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('5ba3038b-4ea3-4075-8bad-90c845b85c49', 'Twist glow ring ', 349, 'Rings', '["/images/products/1783025347388-0.jpeg"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 2, '2026-07-02T20:49:17.809283+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('b610d418-ef76-42c9-af44-3faafaec1356', 'Emerald classic Ring ', 380, 'Rings', '["/images/products/1783025034424-0.jpeg"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 1, '2026-07-02T20:44:33.72255+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('9dd9b557-5f9d-4f46-a8d9-d12b8437d819', 'Entwine ring ', 390, 'Rings', '["/images/products/1783024852849-0.jpeg","/images/products/1783024856500-1.png"]', 'Adjustable ', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 10, '2026-07-02T20:41:26.436833+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('00317986-dcc8-4fde-bed9-b92b175ff1d1', 'Single stone ring ', 280, 'Rings', '["/images/products/1783024679101-0.jpeg","/images/products/1783024683717-1.png"]', 'Available sizes 6 
+How to Measure
+1. Wrap a strip of paper around your finger.
+2. Mark where the ends meet.
+3. Measure the length in *mm*
+4. Match it with the *Finger Circumference* in the chart above.
+•Tip: If you''re between two sizes, choose the *larger size* for a more comfortable fit.
+This layout is simple, elegant, and matches a minimalist jewelry brand aesthetic.
+', 0, 1, 6, '[]', '[]', 0, 'in_stock', 1, '2026-07-02T20:38:38.048082+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('06ea5232-2246-4615-b0aa-3df86b5629ae', 'Thin daily wear plain ring ', 299, 'Rings', '["/images/products/1783024557237-0.jpeg","/images/products/1783024731783-1.png"]', 'Available sizes 6 and 8
+How to Measure
+1. Wrap a strip of paper around your finger.
+2. Mark where the ends meet.
+3. Measure the length in *mm*
+4. Match it with the *Finger Circumference* in the chart above.
+•Tip: If you''re between two sizes, choose the *larger size* for a more comfortable fit.
+This layout is simple, elegant, and matches a minimalist jewelry brand aesthetic.
+', 0, 1, 7, '[]', '[]', 0, 'out_of_stock', 0, '2026-07-02T20:36:24.247173+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('c3dc79ba-5c80-4be8-b83d-e9d3e9142745', 'Trinity wave ring ', 299, 'Rings', '["/images/products/1783023917099-0.jpeg","/images/products/1783024394692-1.png"]', 'Available sizes 6 and 7 
+How to Measure
+1. Wrap a strip of paper around your finger.
+2. Mark where the ends meet.
+3. Measure the length in *mm*
+4. Match it with the *Finger Circumference* in the chart above.
+•Tip: If you''re between two sizes, choose the *larger size* for a more comfortable fit.
+This layout is simple, elegant, and matches a minimalist jewelry brand aesthetic.
+', 0, 1, 7, '[]', '[]', 0, 'in_stock', 4, '2026-07-02T20:33:28.341252+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('ef060529-e431-4a94-bf09-953f47f9eae7', 'Daily wear thin ring (3 stone ) ', 299, 'Rings', '["/images/products/1783023846529-0.jpeg"]', '', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 10, '2026-07-02T20:24:24.507642+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('693debd9-a97b-40e8-a6ea-bad67a5491cb', 'Daily wear thin ring ( 2 stone ) ', 299, 'Rings', '["/images/products/1783023792002-0.jpeg"]', '', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 10, '2026-07-02T20:23:25.542944+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('b36acf04-0427-498a-84a6-3cff56025958', 'Single stone thin daily wear ring ', 299, 'Rings', '["/images/products/1783023716593-0.jpeg"]', '', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 10, '2026-07-02T20:22:14.020887+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('2ddf93fe-3901-4f6c-be81-70a3007035a5', 'Snake waist chain ', 520, 'Waist Chains', '["/images/products/1783023612174-0.jpeg","/images/products/1783023630884-1.jpeg","/images/products/1783023645451-2.jpeg"]', 'Length - 95cm ', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 3, '2026-07-02T20:20:53.272329+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('c7653323-1759-4c9a-8a2f-022f3032422a', 'Pink tulip chain ', 349, 'Neckchains', '["/images/products/1783023372102-0.jpeg"]', '', 0, 0, NULL, '[]', '[]', 0, 'out_of_stock', 10, '2026-07-02T20:16:33.693026+00:00');
+INSERT OR REPLACE INTO products (id, name, price, category, images, description, is_featured, requires_size, max_size, custom_sizes, sizes_out_of_stock, is_preorder, availability, stock_count, created_at) VALUES ('f90d4626-0e81-4346-bddb-ebe82bc5f40d', 'Half moon solitaire neck chain ', 369, 'Neckchains', '["/images/products/1783023165130-0.jpeg","/images/products/1783023180549-1.jpeg"]', 'Length 18”', 0, 0, NULL, '[]', '[]', 0, 'in_stock', 1, '2026-07-02T20:13:36.569382+00:00');

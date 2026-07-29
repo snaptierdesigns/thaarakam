@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import { Star, MessageSquare, Send, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Product } from '@/types';
 
 interface Review {
@@ -35,30 +35,21 @@ export default function ReviewsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch all reviews
-        const { data: reviewsData, error: reviewsError } = await supabase
-          .from('reviews')
-          .select('*')
-          .order('created_at', { ascending: false });
+        // Fetch all reviews from D1
+        const res = await queryD1('SELECT * FROM reviews ORDER BY created_at DESC');
+        if (res.success && res.results) {
+          setReviews(res.results as Review[]);
 
-        if (reviewsData && !reviewsError) {
-          setReviews(reviewsData);
-
-          // Get unique product IDs to fetch product metadata
           const productIds = Array.from(
-            new Set(reviewsData.map((r) => r.product_id).filter(Boolean))
+            new Set(res.results.map((r: any) => r.product_id).filter(Boolean))
           ) as string[];
 
           if (productIds.length > 0) {
-            const { data: productsData } = await supabase
-              .from('products')
-              .select('*')
-              .in('id', productIds);
-
-            if (productsData) {
+            const prodRes = await queryD1("SELECT * FROM products");
+            if (prodRes.success && prodRes.results) {
               const productMap: Record<string, Product> = {};
-              productsData.forEach((prod) => {
-                productMap[prod.id] = prod;
+              prodRes.results.forEach((prod: any) => {
+                productMap[prod.id] = prod as Product;
               });
               setProducts(productMap);
             }
@@ -83,29 +74,28 @@ export default function ReviewsPage() {
     setStatus(null);
 
     try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .insert([
-          {
-            reviewer_name: reviewerName.trim(),
-            rating,
-            comment: comment.trim(),
-            product_id: null, // General store review
-          },
-        ])
-        .select();
+      const newId = crypto.randomUUID();
+      const createdAt = new Date().toISOString();
+      const res = await queryD1(
+        'INSERT INTO reviews (id, product_id, reviewer_name, rating, comment, is_verified, created_at) VALUES (?, NULL, ?, ?, ?, 1, ?)',
+        [newId, reviewerName.trim(), rating, comment.trim(), createdAt]
+      );
 
-      if (error) {
-        console.error(error);
+      if (!res.success) {
         setStatus('Failed to submit review. Please try again.');
       } else {
         setStatus('Review submitted successfully! Thank you.');
         setReviewerName('');
         setComment('');
         setRating(5);
-        if (data) {
-          setReviews((prev) => [data[0], ...prev]);
-        }
+        setReviews((prev) => [{
+          id: newId,
+          product_id: null,
+          reviewer_name: reviewerName.trim(),
+          rating,
+          comment: comment.trim(),
+          created_at: createdAt
+        }, ...prev]);
       }
     } catch (err) {
       console.error(err);

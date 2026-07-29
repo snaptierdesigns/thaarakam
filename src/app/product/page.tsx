@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/ui/Navbar';
 import Footer from '@/components/ui/Footer';
 import ProductDetailsClient from './[id]/ProductDetailsClient';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Product } from '@/types';
 
 function ProductContent() {
@@ -48,21 +48,27 @@ function ProductContent() {
           console.warn('CDN asset load fallback:', e);
         }
 
-        // 2. Fallback to Supabase if newly added or not in CDN file
-        const [productRes, settingsRes] = await Promise.all([
-          supabase.from('products').select('*').eq('id', id).single(),
-          supabase.from('settings').select('*').eq('id', 1).single()
+        // 2. Fallback to Cloudflare D1 if newly added or not in CDN file
+        const [prodRes, setRes] = await Promise.all([
+          queryD1('SELECT * FROM products WHERE id = ? LIMIT 1', [id]),
+          queryD1('SELECT default_description FROM settings WHERE id = 1 LIMIT 1')
         ]);
 
-        if (productRes.error || !productRes.data) {
-          console.error('Error fetching product:', productRes.error);
+        if (prodRes.success && prodRes.results.length > 0) {
+          const found = prodRes.results[0];
+          try {
+            found.images = typeof found.images === 'string' ? JSON.parse(found.images) : found.images;
+            found.custom_sizes = typeof found.custom_sizes === 'string' ? JSON.parse(found.custom_sizes) : found.custom_sizes;
+            found.sizes_out_of_stock = typeof found.sizes_out_of_stock === 'string' ? JSON.parse(found.sizes_out_of_stock) : found.sizes_out_of_stock;
+          } catch (e) {}
+          setProduct(found as Product);
+        } else {
           setError(true);
           return;
         }
 
-        setProduct(productRes.data as Product);
-        if (settingsRes.data) {
-          setDefaultDescription(settingsRes.data.default_description || '');
+        if (setRes.success && setRes.results.length > 0) {
+          setDefaultDescription(setRes.results[0].default_description || '');
         }
       } catch (err) {
         console.error('Unexpected error loading product:', err);

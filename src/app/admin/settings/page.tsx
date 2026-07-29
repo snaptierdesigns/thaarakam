@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import SettingsClient from './SettingsClient';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Settings } from '@/types';
 
 // Enable static export caching for admin settings page
@@ -8,17 +8,11 @@ export const revalidate = 86400;
 
 async function getSettings() {
   try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single();
-
-    if (error) {
-      console.error('Error fetching settings for admin Settings page:', error);
-      return null;
+    const res = await queryD1('SELECT * FROM settings WHERE id = 1 LIMIT 1');
+    if (res.success && res.results.length > 0) {
+      return res.results[0] as Settings;
     }
-    return data as Settings;
+    return null;
   } catch (error) {
     console.error('Unexpected error fetching settings for admin Settings page:', error);
     return null;

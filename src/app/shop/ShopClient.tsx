@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
 import { Product, CATEGORIES } from '@/types';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Search, X } from 'lucide-react';
 
 interface ShopClientProps {
@@ -66,19 +66,18 @@ export default function ShopClient({ products }: ShopClientProps) {
         console.warn('CDN static asset load fallback to Supabase:', e);
       }
 
-      // Fallback to Supabase only if CDN asset fails
+      // Fallback to Cloudflare D1 if CDN asset fails
       try {
-        const { data } = await supabase
-          .from('products')
-          .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count')
-          .neq('name', 'General Store Review Placeholder')
-          .order('created_at', { ascending: false });
-
-        if (data && data.length > 0) {
-          setProductsList(data as Product[]);
+        const res = await queryD1("SELECT id, name, price, category, images, availability, is_featured, is_preorder, stock_count FROM products WHERE name != 'General Store Review Placeholder' ORDER BY created_at DESC");
+        if (res.success && res.results.length > 0) {
+          const parsed = res.results.map((p: any) => {
+            try { p.images = typeof p.images === 'string' ? JSON.parse(p.images) : p.images; } catch (e) {}
+            return p as Product;
+          });
+          setProductsList(parsed);
         }
       } catch (e) {
-        console.error('Error fetching products:', e);
+        console.error('Error fetching products from D1:', e);
       }
     }
     fetchCdnProducts();

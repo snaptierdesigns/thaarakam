@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Product } from '@/types';
 import { useCart } from '@/components/ui/CartProvider';
 import { ChevronLeft, ChevronRight, Plus, Minus, Check, Star } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 
 interface ProductDetailsClientProps {
   product: Product;
@@ -21,17 +21,19 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   const [quantity, setQuantity] = useState(1);
   const [addedToCartFeedback, setAddedToCartFeedback] = useState(false);
 
-  // Fetch live product details on mount so price/stock edits reflect instantly
+  // Fetch live product details on mount from Cloudflare D1
   useEffect(() => {
     async function fetchLiveProduct() {
       try {
-        const { data } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', product.id)
-          .single();
-        if (data) {
-          setCurrentProduct(data as Product);
+        const res = await queryD1('SELECT * FROM products WHERE id = ? LIMIT 1', [product.id]);
+        if (res.success && res.results.length > 0) {
+          const raw = res.results[0];
+          try {
+            raw.images = typeof raw.images === 'string' ? JSON.parse(raw.images) : raw.images;
+            raw.custom_sizes = typeof raw.custom_sizes === 'string' ? JSON.parse(raw.custom_sizes) : raw.custom_sizes;
+            raw.sizes_out_of_stock = typeof raw.sizes_out_of_stock === 'string' ? JSON.parse(raw.sizes_out_of_stock) : raw.sizes_out_of_stock;
+          } catch (e) {}
+          setCurrentProduct(raw as Product);
         }
       } catch (e) {
         console.error('Error fetching live product details:', e);
@@ -52,13 +54,9 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   useEffect(() => {
     async function fetchReviews() {
       try {
-        const { data, error } = await supabase
-          .from('reviews')
-          .select('*')
-          .eq('product_id', product.id)
-          .order('created_at', { ascending: false });
-        if (data && !error) {
-          setReviews(data);
+        const res = await queryD1('SELECT * FROM reviews WHERE product_id = ? ORDER BY created_at DESC', [product.id]);
+        if (res.success) {
+          setReviews(res.results || []);
         }
       } catch (err) {
         console.error('Error fetching reviews:', err);
@@ -78,29 +76,28 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     setSubmittingReview(true);
     setReviewStatus(null);
     try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .insert([
-          {
-            product_id: product.id,
-            reviewer_name: reviewerName.trim(),
-            rating,
-            comment: comment.trim(),
-          }
-        ])
-        .select();
+      const newId = crypto.randomUUID();
+      const createdAt = new Date().toISOString();
+      const res = await queryD1(
+        'INSERT INTO reviews (id, product_id, reviewer_name, rating, comment, is_verified, created_at) VALUES (?, ?, ?, ?, ?, 1, ?)',
+        [newId, product.id, reviewerName.trim(), rating, comment.trim(), createdAt]
+      );
 
-      if (error) {
-        console.error(error);
+      if (!res.success) {
         setReviewStatus('Failed to submit review.');
       } else {
         setReviewStatus('Review submitted successfully!');
         setReviewerName('');
         setComment('');
         setRating(5);
-        if (data) {
-          setReviews(prev => [data[0], ...prev]);
-        }
+        setReviews(prev => [{
+          id: newId,
+          product_id: product.id,
+          reviewer_name: reviewerName.trim(),
+          rating,
+          comment: comment.trim(),
+          created_at: createdAt
+        }, ...prev]);
       }
     } catch (err) {
       console.error(err);

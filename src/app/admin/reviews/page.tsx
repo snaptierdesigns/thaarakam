@@ -5,66 +5,46 @@ import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 import { addReviewByAdmin, deleteReview } from '../actions';
 import { Star, Trash2, Plus, MessageSquare, ShieldAlert } from 'lucide-react';
-
-interface Review {
-  id: string;
-  reviewer_name: string;
-  rating: number;
-  comment: string;
-  product_id: string | null;
-  created_at: string;
-}
+import { queryD1 } from '@/lib/d1';
 
 export default function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [productMap, setProductMap] = useState<Record<string, Product>>({});
   const [loading, setLoading] = useState(true);
 
-  // Add Review Form State
+  // Form State
   const [reviewerName, setReviewerName] = useState('');
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
-  const [productId, setProductId] = useState<string>(''); // empty string means General Store Review
+  const [productId, setProductId] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formStatus, setFormStatus] = useState<string | null>(null);
 
-  // Fetch reviews & products
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch products
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('*')
-          .neq('name', 'General Store Review Placeholder')
-          .order('name');
-
-        if (productsData) {
-          setProducts(productsData);
-          const map: Record<string, Product> = {};
-          productsData.forEach((p) => {
-            map[p.id] = p;
-          });
-          setProductMap(map);
-        }
-
-        // Fetch reviews
-        const { data: reviewsData } = await supabase
-          .from('reviews')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (reviewsData) {
-          setReviews(reviewsData);
-        }
-      } catch (err) {
-        console.error('Error fetching admin reviews data:', err);
-      } finally {
-        setLoading(false);
+  const fetchReviewsList = async () => {
+    try {
+      setLoading(true);
+      const prodRes = await queryD1("SELECT * FROM products WHERE name != 'General Store Review Placeholder' ORDER BY name");
+      if (prodRes.success && prodRes.results) {
+        setProducts(prodRes.results as Product[]);
+        const map: Record<string, Product> = {};
+        prodRes.results.forEach((p: any) => { map[p.id] = p as Product; });
+        setProductMap(map);
       }
+
+      const revRes = await queryD1("SELECT * FROM reviews ORDER BY created_at DESC");
+      if (revRes.success && revRes.results) {
+        setReviews(revRes.results);
+      }
+    } catch (err) {
+      console.error('Error fetching admin reviews data:', err);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
+  };
+
+  useEffect(() => {
+    fetchReviewsList();
   }, []);
 
   const handleAddReview = async (e: React.FormEvent) => {
@@ -84,13 +64,13 @@ export default function AdminReviewsPage() {
     };
 
     const res = await addReviewByAdmin(payload);
-    if (res.success && res.data) {
+    if (res.success) {
       setFormStatus('Review added successfully!');
       setReviewerName('');
       setComment('');
       setRating(5);
       setProductId('');
-      setReviews((prev) => [res.data[0], ...prev]);
+      fetchReviewsList();
     } else {
       setFormStatus(`Error: ${res.error || 'Failed to save review'}`);
     }

@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Search, Truck, Package, ExternalLink, ArrowLeft, CheckCircle2, Clock } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 
 function TrackContent() {
   const searchParams = useSearchParams();
@@ -24,15 +24,14 @@ function TrackContent() {
     setOrderResult(null);
 
     try {
-      // Search by order_number OR tracking_number
-      const { data, error } = await supabase
-        .from('orders')
-        .select('*')
-        .or(`order_number.ilike.%${clean}%,tracking_number.ilike.%${clean}%`)
-        .single();
+      // Search D1 by order_number OR tracking_number
+      const res = await queryD1(
+        'SELECT * FROM orders WHERE LOWER(order_number) LIKE ? OR LOWER(tracking_number) LIKE ? LIMIT 1',
+        [`%${clean.toLowerCase()}%`, `%${clean.toLowerCase()}%`]
+      );
 
-      if (data && !error) {
-        setOrderResult(data);
+      if (res.success && res.results.length > 0) {
+        setOrderResult(res.results[0]);
       } else {
         setNotFound(true);
       }

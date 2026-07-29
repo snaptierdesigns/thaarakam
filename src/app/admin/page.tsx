@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { LayoutDashboard, ShoppingBag, Tag, CheckCircle2, AlertTriangle, Clock, Plus, Eye } from 'lucide-react';
 
 // Enable static export caching for admin dashboard
@@ -8,8 +8,8 @@ export const revalidate = 86400;
 
 async function getDashboardStats() {
   try {
-    const productsRes = await supabase.from('products').select('category, availability, is_featured, is_preorder');
-    const products = productsRes.data || [];
+    const productsRes = await queryD1('SELECT category, availability, is_featured, is_preorder FROM products');
+    const products = productsRes.results || [];
 
     const total = products.length;
     const featured = products.filter(p => p.is_featured).length;

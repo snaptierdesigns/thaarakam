@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from './CartProvider';
 import { Menu, X, ShoppingBag, ChevronDown } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { queryD1 } from '@/lib/d1';
 import { Settings, CATEGORIES } from '@/types';
 
 export default function Navbar() {
@@ -21,17 +21,13 @@ export default function Navbar() {
     setCategoriesOpen(false);
   }, [pathname]);
 
-  // Fetch settings dynamically
+  // Fetch settings dynamically from Cloudflare D1
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('*')
-          .eq('id', 1)
-          .single();
-        if (data && !error) {
-          setSettings(data);
+        const res = await queryD1('SELECT * FROM settings WHERE id = 1 LIMIT 1');
+        if (res.success && res.results.length > 0) {
+          setSettings(res.results[0] as unknown as Settings);
         }
       } catch (err) {
         console.error('Error fetching settings for Navbar:', err);
