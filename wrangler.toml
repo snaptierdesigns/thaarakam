@@ -1,8 +1,6 @@
 name = "thaarakam"
 compatibility_date = "2025-01-01"
-
-[assets]
-directory = "out"
+pages_build_output_dir = "out"
 
 [[d1_databases]]
 binding = "DB"

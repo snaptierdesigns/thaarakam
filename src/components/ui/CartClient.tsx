@@ -37,14 +37,53 @@ export default function CartClient({ settings }: CartClientProps) {
 
   const getShippingFeeAndLabel = () => {
     const selectedCountry = form.country;
+    const cleanPin = form.pinCode.trim().toUpperCase().replace(/\s+/g, '');
 
+    // 1. International Zip Code Auto-Detection
+    if (cleanPin.length > 0) {
+      // Lakshadweep Island Pincodes (682551 - 682559)
+      if (/^68255[1-9]$/.test(cleanPin)) {
+        return { shippingFee: 2100, label: 'Lakshadweep' };
+      }
+
+      // UK Postcode Format (e.g. SW1A1AA, EC1A1BB, M11AE)
+      if (/^[A-Z]{1,2}[0-9][A-Z0-9]?[0-9][A-Z]{2}$/i.test(cleanPin)) {
+        return { shippingFee: 2700, label: 'United Kingdom (International)' };
+      }
+
+      // Canada Postal Code Format (e.g. M5V2T6, K1A0B1)
+      if (/^[A-Z][0-9][A-Z][0-9][A-Z][0-9]$/i.test(cleanPin)) {
+        return { shippingFee: 2200, label: 'Canada (International)' };
+      }
+
+      // USA Zip Code Format (5 digits or 5+4, e.g. 90210, 10001-1234)
+      if (/^\d{5}(-\d{4})?$/.test(cleanPin) && selectedCountry === 'United States') {
+        return { shippingFee: 2600, label: 'United States (International)' };
+      }
+
+      // Maldives Postal Code (20000 - 20999)
+      if (/^20\d{3}$/.test(cleanPin) || selectedCountry === 'Maldives') {
+        return { shippingFee: 2100, label: 'Maldives (International)' };
+      }
+
+      // Sri Lanka Postal Code (5 digits 00100 - 96100)
+      if (/^\d{5}$/.test(cleanPin) && selectedCountry === 'Sri Lanka') {
+        return { shippingFee: 1500, label: 'Sri Lanka (International)' };
+      }
+
+      // Bangladesh Postal Code (4 digits 1000 - 9400)
+      if (/^\d{4}$/.test(cleanPin) && selectedCountry === 'Bangladesh') {
+        return { shippingFee: 1500, label: 'Bangladesh (International)' };
+      }
+    }
+
+    // 2. Dropdown Country Selection Rate
     if (selectedCountry !== 'India') {
       const rate = COUNTRY_SHIPPING_RATES[selectedCountry] ?? 2800;
       return { shippingFee: rate, label: `${selectedCountry} (International)` };
     }
 
-    // Pinpoint Pincode detection for India
-    const cleanPin = form.pinCode.trim().replace(/\s/g, '');
+    // 3. Domestic India Pincode Rate
     if (!cleanPin || cleanPin.length < 6 || isNaN(Number(cleanPin))) {
       return { shippingFee: shippingKerala, label: 'Kerala (Default)' };
     }
@@ -63,8 +102,8 @@ export default function CartClient({ settings }: CartClientProps) {
       return { shippingFee: shippingSouthIndia, label: 'South India' };
     }
 
-    // Rest is North India / Rest of India
-    return { shippingFee: shippingNorthIndia, label: 'Rest of India' };
+    // Domestic India (Other states)
+    return { shippingFee: shippingNorthIndia, label: 'Domestic India' };
   };
 
   const { shippingFee, label: regionLabel } = getShippingFeeAndLabel();
@@ -540,32 +579,29 @@ export default function CartClient({ settings }: CartClientProps) {
               </div>
             </div>
 
-            {/* PIN Code */}
-            {form.country === 'India' && (
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
-                  PIN Code
-                </label>
-                <input
-                  type="text"
-                  id="pinCode"
-                  name="pinCode"
-                  value={form.pinCode}
-                  onChange={handleInputChange}
-                  maxLength={6}
-                  className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                  placeholder="6-digit PIN code"
-                />
-                {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
-                
-                {form.pinCode.trim().length === 6 && !isNaN(Number(form.pinCode.trim())) && (
-                  <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
-                    ₹{shippingFee} shipping fee applied due to location: {regionLabel}
-                  </p>
-                )}
-              </div>
-            )}
+            {/* PIN / Postal Code */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pinCode" className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                PIN / Postal / Zip Code
+              </label>
+              <input
+                type="text"
+                id="pinCode"
+                name="pinCode"
+                value={form.pinCode}
+                onChange={handleInputChange}
+                className="rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
+                placeholder={form.country === 'India' ? "6-digit PIN code" : "Zip / Postal code"}
+              />
+              {formErrors.pinCode && <p className="text-[10px] text-red-500 font-medium">{formErrors.pinCode}</p>}
+              
+              {form.pinCode.trim().length > 0 && (
+                <p className="text-[10px] text-green-700 font-semibold mt-1.5 flex items-center gap-1.5 bg-green-50 border border-green-200/50 p-2.5 rounded-xl w-fit">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-600 animate-pulse"></span>
+                  ₹{shippingFee.toLocaleString('en-IN')} shipping fee applied for {regionLabel}
+                </p>
+              )}
+            </div>
 
             {/* Payment Mode Notice */}
             <div className="bg-emerald-50/50 border border-emerald-200/50 rounded-xl p-3 text-[10px] text-emerald-800 leading-relaxed flex items-start gap-2 mt-2">
