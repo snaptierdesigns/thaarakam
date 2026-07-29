@@ -11,6 +11,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (pathname !== '/admin/login') {
+      const hasCookie = typeof document !== 'undefined' && document.cookie.includes('thaarakam_admin_session=authenticated');
+      const hasStorage = typeof localStorage !== 'undefined' && localStorage.getItem('thaarakam_admin_session') === 'authenticated';
+      if (!hasCookie && !hasStorage) {
+        router.replace('/admin/login');
+      }
+    }
+  }, [pathname, router]);
+
   // If we are on the login page, don't show the dashboard shell layout
   if (pathname === '/admin/login') {
     return <>{children}</>;
