@@ -50,8 +50,17 @@ export default function ShopClient({ products }: ShopClientProps) {
     setSelectedCategory(categoryParam);
   }, [categoryParam]);
 
-  // Load products directly from Cloudflare CDN static asset (0 BYTES Supabase Egress!)
+  // Sync products list whenever props change
   useEffect(() => {
+    if (products && products.length > 0) {
+      setProductsList(products);
+    }
+  }, [products]);
+
+  // Fallback loading if initial props were empty
+  useEffect(() => {
+    if (productsList && productsList.length > 0) return;
+
     async function fetchCdnProducts() {
       try {
         const res = await fetch('/data/products.json');
@@ -70,7 +79,7 @@ export default function ShopClient({ products }: ShopClientProps) {
       try {
         const { data } = await supabase
           .from('products')
-          .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count')
+          .select('*')
           .neq('name', 'General Store Review Placeholder')
           .order('created_at', { ascending: false });
 
@@ -82,7 +91,7 @@ export default function ShopClient({ products }: ShopClientProps) {
       }
     }
     fetchCdnProducts();
-  }, []);
+  }, [productsList]);
 
   // Set category filter and update URL parameter
   const handleCategorySelect = (category: string | null) => {
