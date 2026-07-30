@@ -186,11 +186,6 @@ export default function Footer() {
           <p className="text-xs text-secondary">
             &copy; {new Date().getFullYear()} {settings?.business_name || 'Thaarakam'} Jewellery. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            <Link href="/admin" className="text-[10px] uppercase tracking-wider text-secondary/65 hover:text-foreground transition-colors">
-              Store Manager Login
-            </Link>
-          </div>
         </div>
 
       </div>
