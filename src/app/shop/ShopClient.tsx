@@ -57,27 +57,11 @@ export default function ShopClient({ products }: ShopClientProps) {
     }
   }, [products]);
 
-  // Fallback loading if initial props were empty
+  // Fetch live products from Supabase on mount so admin stock/availability updates reflect in real time
   useEffect(() => {
-    if (productsList && productsList.length > 0) return;
-
-    async function fetchCdnProducts() {
+    async function fetchLiveProducts() {
       try {
-        const res = await fetch('/data/products.json');
-        if (res.ok) {
-          const cdnData = await res.json();
-          if (cdnData && Array.isArray(cdnData) && cdnData.length > 0) {
-            setProductsList(cdnData as Product[]);
-            return;
-          }
-        }
-      } catch (e) {
-        console.warn('CDN static asset load fallback to Supabase:', e);
-      }
-
-      // Fallback to Supabase only if CDN asset fails
-      try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('products')
           .select('*')
           .neq('name', 'General Store Review Placeholder')
@@ -87,11 +71,11 @@ export default function ShopClient({ products }: ShopClientProps) {
           setProductsList(data as Product[]);
         }
       } catch (e) {
-        console.error('Error fetching products:', e);
+        console.error('Error fetching live products from Supabase:', e);
       }
     }
-    fetchCdnProducts();
-  }, [productsList]);
+    fetchLiveProducts();
+  }, []);
 
   // Set category filter and update URL parameter
   const handleCategorySelect = (category: string | null) => {

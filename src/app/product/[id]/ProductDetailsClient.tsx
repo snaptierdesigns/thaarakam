@@ -268,15 +268,15 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
             </div>
 
             {/* Stock Count Display */}
-            {!isOutOfStock && product.stock_count !== null && product.stock_count !== undefined && (
+            {!isOutOfStock && currentProduct.stock_count !== null && currentProduct.stock_count !== undefined && (
               <div className="mt-1">
-                {product.stock_count <= 5 ? (
+                {currentProduct.stock_count <= 5 ? (
                   <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold px-2 py-1 select-none animate-pulse">
-                    ⚠️ Only {product.stock_count} item{product.stock_count > 1 ? 's' : ''} left in stock!
+                    ⚠️ Only {currentProduct.stock_count} item{currentProduct.stock_count > 1 ? 's' : ''} left in stock!
                   </span>
                 ) : (
                   <span className="text-[10px] text-secondary font-medium">
-                    ({product.stock_count} units available)
+                    ({currentProduct.stock_count} units available)
                   </span>
                 )}
               </div>
