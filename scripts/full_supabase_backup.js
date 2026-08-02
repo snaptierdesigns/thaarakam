@@ -2,8 +2,8 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-const url = 'https://kwyrkezwhpgxstytxyaf.supabase.co';
-const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3eXJrZXp3aHBneHN0eXR4eWFmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDg1NTgzNywiZXhwIjoyMTAwNDMxODM3fQ.q2d0Ecxsihjm6xAzgOD_Weu7D77SXMk9hlgiR8Y0-gU';
+const url = 'https://kvgipdvlnpghxzsgxptz.supabase.co';
+const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2Z2lwZHZsbnBnaHh6c2d4cHR6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTY3ODM1NywiZXhwIjoyMTAxMjU0MzU3fQ.EDTzTOtaYmg4jSGhnvVhQpAlmpSf25FaKHjtwh0-Fao';
 
 const adminClient = createClient(url, serviceKey, {
   auth: { persistSession: false, autoRefreshToken: false }
@@ -82,6 +82,28 @@ async function backupAll() {
   comment TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );\n\n`;
+
+  // Enable Row Level Security & Policies
+  sqlDump += '-- ENABLE ROW LEVEL SECURITY & POLICIES\n';
+  sqlDump += 'ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;\n';
+  sqlDump += 'DROP POLICY IF EXISTS "Public Read Products" ON public.products;\n';
+  sqlDump += 'CREATE POLICY "Public Read Products" ON public.products FOR SELECT USING (true);\n';
+  sqlDump += 'DROP POLICY IF EXISTS "All Access Products" ON public.products;\n';
+  sqlDump += 'CREATE POLICY "All Access Products" ON public.products FOR ALL USING (true);\n\n';
+
+  sqlDump += 'ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;\n';
+  sqlDump += 'DROP POLICY IF EXISTS "Public Read Settings" ON public.settings;\n';
+  sqlDump += 'CREATE POLICY "Public Read Settings" ON public.settings FOR SELECT USING (true);\n';
+  sqlDump += 'DROP POLICY IF EXISTS "All Access Settings" ON public.settings;\n';
+  sqlDump += 'CREATE POLICY "All Access Settings" ON public.settings FOR ALL USING (true);\n\n';
+
+  sqlDump += 'ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;\n';
+  sqlDump += 'DROP POLICY IF EXISTS "Public Read Reviews" ON public.reviews;\n';
+  sqlDump += 'CREATE POLICY "Public Read Reviews" ON public.reviews FOR SELECT USING (true);\n';
+  sqlDump += 'DROP POLICY IF EXISTS "Public Insert Reviews" ON public.reviews;\n';
+  sqlDump += 'CREATE POLICY "Public Insert Reviews" ON public.reviews FOR INSERT WITH CHECK (true);\n';
+  sqlDump += 'DROP POLICY IF EXISTS "All Access Reviews" ON public.reviews;\n';
+  sqlDump += 'CREATE POLICY "All Access Reviews" ON public.reviews FOR ALL USING (true);\n\n';
 
   // 2. Data Inserts
   for (const [table, rows] of Object.entries(fullData)) {
