@@ -27,11 +27,11 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
       try {
         const { data } = await supabase
           .from('products')
-          .select('*')
+          .select('id, name, price, availability, stock_count, description, images, requires_size, max_size, is_preorder')
           .eq('id', product.id)
           .single();
         if (data) {
-          setCurrentProduct(data as Product);
+          setCurrentProduct(prev => ({ ...prev, ...data }));
         }
       } catch (e) {
         console.error('Error fetching live product details:', e);
