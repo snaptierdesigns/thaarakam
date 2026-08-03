@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product, CATEGORIES } from '@/types';
-import { getSupabaseAdmin } from '@/lib/supabase';
+import { supabase, getSupabaseAdmin } from '@/lib/supabase';
 import { Search, Plus, Trash2, Edit, Upload, X, ArrowLeft, Save, Star, RefreshCw, Layers } from 'lucide-react';
 
 interface ProductsClientProps {
@@ -50,14 +50,17 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('thaarakam_shop_cache');
       }
-      const admin = getSupabaseAdmin();
-      const { data } = await admin
+      const { data } = await supabase
         .from('products')
         .select('*')
         .neq('name', 'General Store Review Placeholder')
         .order('created_at', { ascending: false });
       if (data) {
-        setProductsList(data as Product[]);
+        const cleaned = data.map(item => ({
+          ...item,
+          name: item.name ? item.name.trim() : item.name,
+        }));
+        setProductsList(cleaned as Product[]);
       }
     } catch (e) {
       console.error('Error fetching fresh products:', e);

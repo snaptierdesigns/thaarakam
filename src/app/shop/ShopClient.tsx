@@ -57,37 +57,28 @@ export default function ShopClient({ products }: ShopClientProps) {
     }
   }, [products]);
 
-  // Fetch live stock & prices from Supabase on mount (Ultra-lightweight 3KB payload for 99% Egress Reduction!)
+  // Fetch live products from Supabase on mount so newly added products & edits reflect instantly
   useEffect(() => {
-    async function syncLiveStock() {
+    async function fetchLiveProducts() {
       try {
         const { data } = await supabase
           .from('products')
-          .select('id, availability, stock_count, price')
-          .neq('name', 'General Store Review Placeholder');
+          .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count, requires_size, max_size, created_at')
+          .neq('name', 'General Store Review Placeholder')
+          .order('created_at', { ascending: false });
 
         if (data && data.length > 0) {
-          const liveMap = new Map(data.map(item => [item.id, item]));
-          setProductsList(prev =>
-            prev.map(p => {
-              const live = liveMap.get(p.id);
-              if (live) {
-                return {
-                  ...p,
-                  availability: live.availability,
-                  stock_count: live.stock_count,
-                  price: live.price,
-                };
-              }
-              return p;
-            })
-          );
+          const cleaned = data.map(item => ({
+            ...item,
+            name: item.name ? item.name.trim() : item.name,
+          }));
+          setProductsList(cleaned as Product[]);
         }
       } catch (e) {
-        console.error('Error syncing live stock from Supabase:', e);
+        console.error('Error fetching live products from Supabase:', e);
       }
     }
-    syncLiveStock();
+    fetchLiveProducts();
   }, []);
 
   // Set category filter and update URL parameter
