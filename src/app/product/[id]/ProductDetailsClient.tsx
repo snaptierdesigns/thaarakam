@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Product } from '@/types';
 import { useCart } from '@/components/ui/CartProvider';
-import { ChevronLeft, ChevronRight, Plus, Minus, Check, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Minus, Check, Star, CreditCard } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 interface ProductDetailsClientProps {
@@ -136,6 +137,20 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     defaultDescription,
     currentProduct.description
   ].filter(Boolean).join('\n\n* \n\n');
+
+  const router = useRouter();
+
+  // Handle Buy Now action (Immediate Checkout)
+  const handleBuyNow = () => {
+    if (!canAddToCart) return;
+    if (currentProduct.requires_size && selectedSize === null) {
+      alert('Please select a size before proceeding.');
+      return;
+    }
+
+    addToCart(currentProduct, quantity, selectedSize);
+    router.push('/cart');
+  };
 
   // Handle Add to Cart action
   const handleAddToCart = () => {
@@ -347,17 +362,26 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
             </div>
           )}
 
-          {/* Add to Cart Actions */}
-          <div className="mt-2 flex flex-col gap-3">
+          {/* Action Buttons: Buy Now & Add to Cart */}
+          <div className="mt-2 flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={handleBuyNow}
+              disabled={!canAddToCart}
+              className="flex-1 rounded-xl bg-foreground text-background py-3.5 text-xs font-bold uppercase tracking-wider hover:opacity-90 active:scale-[0.99] transition-all disabled:bg-border disabled:text-secondary disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+            >
+              <CreditCard className="h-4 w-4" />
+              {isPreorder ? 'Pre Order Now' : 'Buy Now'}
+            </button>
+
             <button
               onClick={handleAddToCart}
               disabled={!canAddToCart}
-              className={`w-full rounded-xl py-3.5 text-xs font-bold uppercase tracking-wider text-background transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
+              className={`flex-1 rounded-xl py-3.5 text-xs font-bold uppercase tracking-wider border transition-all active:scale-[0.99] flex items-center justify-center gap-2 ${
                 !canAddToCart
-                  ? 'bg-border text-secondary cursor-not-allowed'
+                  ? 'border-border text-secondary cursor-not-allowed'
                   : addedToCartFeedback
-                    ? 'bg-green-700 text-background'
-                    : 'bg-foreground hover:opacity-90'
+                    ? 'bg-green-700 text-white border-green-700 font-bold'
+                    : 'border-foreground/80 text-foreground hover:bg-border/20'
               }`}
             >
               {addedToCartFeedback ? (
@@ -365,10 +389,6 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
                   <Check className="h-4 w-4" />
                   Added to Cart
                 </>
-              ) : isPreorder ? (
-                'Pre Order Now'
-              ) : isOutOfStock ? (
-                'Out of Stock'
               ) : (
                 'Add to Cart'
               )}
