@@ -239,7 +239,7 @@ export async function onRequest(context) {
         <a href="https://www.instagram.com/thaarakam_by_nithara/" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
           Order via Instagram DMs →
         </a>
-        <a href="https://wa.me/917907572719" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+        <a href="https://wa.me/918921356009" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
           Order via WhatsApp DMs →
         </a>
       </div>
