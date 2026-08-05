@@ -360,9 +360,6 @@ export default function CartClient({ settings }: CartClientProps) {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">
               Shipping & Checkout
             </h2>
-            <div className="flex items-center gap-1 text-[10px] text-green-700 font-bold uppercase tracking-wider bg-green-50 px-2 py-0.5 rounded border border-green-200">
-              <ShieldCheck className="h-3.5 w-3.5" /> Razorpay Secure
-            </div>
           </div>
 
           <form onSubmit={handleCheckout} className="flex flex-col gap-4">
@@ -547,9 +544,6 @@ export default function CartClient({ settings }: CartClientProps) {
                 </>
               )}
             </button>
-            <p className="text-[9px] text-center text-secondary">
-              🔒 100% Secure Checkout via UPI, Cards, Netbanking & Wallets
-            </p>
           </form>
 
         </div>
