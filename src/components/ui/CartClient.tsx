@@ -140,7 +140,10 @@ export default function CartClient({ settings }: CartClientProps) {
 
     // Encode message text
     const encodedText = encodeURIComponent(message);
-    const whatsappNum = settings.whatsapp_number.replace(/\D/g, ''); // strip non-numeric characters
+    let whatsappNum = (settings.whatsapp_number || '8921356009').replace(/\D/g, '');
+    if (whatsappNum.length === 10) {
+      whatsappNum = `91${whatsappNum}`;
+    }
     
     // Decrement product stock and finalize order redirect
     const finalizeCheckout = async () => {
