@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
-import { LayoutDashboard, ShoppingBag, Tag, CheckCircle2, AlertTriangle, Clock, Plus, Eye } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Tag, CheckCircle2, AlertTriangle, Clock, Plus, Eye, Package } from 'lucide-react';
 
 // Enable static export caching for admin dashboard
 export const revalidate = 86400;
@@ -93,7 +93,23 @@ export default async function AdminDashboardPage() {
         <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Link
+            href="/admin/orders"
+            className="flex items-center justify-between p-4 rounded-xl border border-border bg-background hover:border-foreground/35 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <span className="rounded-lg bg-green-600 text-white p-2">
+                <Package className="h-4 w-4 stroke-[2]" />
+              </span>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-semibold text-foreground">Customer Orders</span>
+                <span className="text-[10px] text-secondary">View tiles, addresses & WhatsApp chat</span>
+              </div>
+            </div>
+            <span className="text-xs font-medium text-foreground">→</span>
+          </Link>
+
           <Link
             href="/admin/products?action=add"
             className="flex items-center justify-between p-4 rounded-xl border border-border bg-background hover:border-foreground/35 hover:shadow-sm transition-all"
