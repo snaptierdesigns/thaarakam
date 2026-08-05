@@ -43,6 +43,8 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
+    { name: 'Reviews', href: '/reviews' },
+    { name: 'Admin Orders', href: '/admin/orders' },
   ];
 
   return (

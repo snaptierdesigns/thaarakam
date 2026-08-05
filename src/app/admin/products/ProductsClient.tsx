@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Product, CATEGORIES } from '@/types';
 import { supabase, getSupabaseAdmin } from '@/lib/supabase';
-import { Search, Plus, Trash2, Edit, Upload, X, ArrowLeft, Save, Star, RefreshCw, Layers } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, Edit, Upload, X, ArrowLeft, Save, Star, RefreshCw, Layers } from 'lucide-react';
 
 interface ProductsClientProps {
   initialProducts: Product[];
@@ -39,6 +39,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   const [formFeatured, setFormFeatured] = useState(false);
   const [formRequiresSize, setFormRequiresSize] = useState(false);
   const [formMaxSize, setFormMaxSize] = useState('18');
+  const [formAvailableSizes, setFormAvailableSizes] = useState<string[]>([]);
+  const [formOutOfStockSizes, setFormOutOfStockSizes] = useState<string[]>([]);
   const [formPreorder, setFormPreorder] = useState(false);
   const [formAvailability, setFormAvailability] = useState<'in_stock' | 'out_of_stock'>('in_stock');
   const [formStockCount, setFormStockCount] = useState<string>('10');
@@ -92,6 +94,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormFeatured(false);
     setFormRequiresSize(false);
     setFormMaxSize('18');
+    setFormAvailableSizes([]);
+    setFormOutOfStockSizes([]);
     setFormPreorder(false);
     setFormAvailability('in_stock');
     setFormStockCount('10');
@@ -110,6 +114,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormFeatured(product.is_featured);
     setFormRequiresSize(product.requires_size);
     setFormMaxSize(product.max_size?.toString() || '18');
+    setFormAvailableSizes((product.available_sizes || []).map(String));
+    setFormOutOfStockSizes((product.out_of_stock_sizes || []).map(String));
     setFormPreorder(product.is_preorder);
     setFormAvailability(product.availability);
     setFormStockCount(product.stock_count !== null && product.stock_count !== undefined ? product.stock_count.toString() : '');
@@ -342,7 +348,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       const computedAvailability = (parsedStock !== null && parsedStock <= 0) ? 'out_of_stock' : formAvailability;
 
       const payload = {
-        name: formName,
+        name: formName.trim(),
         price: Number(formPrice),
         category: formCategory,
         images: cleanImages,
@@ -350,6 +356,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         is_featured: formFeatured,
         requires_size: formRequiresSize,
         max_size: formRequiresSize ? Number(formMaxSize || 18) : null,
+        available_sizes: formAvailableSizes.filter(s => s.trim() !== ''),
+        out_of_stock_sizes: formOutOfStockSizes,
         is_preorder: formPreorder,
         availability: computedAvailability,
         stock_count: parsedStock,
@@ -771,16 +779,77 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                     />
                   </div>
                   {formRequiresSize && (
-                    <div className="flex items-center gap-3 mt-1.5 animate-fadeIn duration-200">
-                      <span className="text-[10px] text-secondary whitespace-nowrap">Maximum Size (1-99):</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="99"
-                        value={formMaxSize}
-                        onChange={(e) => setFormMaxSize(e.target.value)}
-                        className="w-20 rounded-xl border border-border bg-background px-3 py-1.5 text-xs focus:border-foreground/40 focus:outline-none transition-colors"
-                      />
+                    <div className="flex flex-col gap-3 mt-3 p-4 rounded-xl border border-border bg-border/5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-foreground">Custom Available Sizes</span>
+                        <button
+                          type="button"
+                          onClick={() => setFormAvailableSizes(prev => [...prev, ''])}
+                          className="inline-flex items-center gap-1 rounded-lg bg-foreground text-background px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider hover:opacity-90 transition-all"
+                        >
+                          <Plus className="h-3 w-3" /> Add Size Box
+                        </button>
+                      </div>
+
+                      {/* Dynamic List of Size Input Boxes */}
+                      <div className="flex flex-wrap gap-2">
+                        {formAvailableSizes.map((sizeVal, idx) => (
+                          <div key={idx} className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={sizeVal}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setFormAvailableSizes(prev => prev.map((s, i) => (i === idx ? val : s)));
+                              }}
+                              placeholder={`Size e.g. ${idx + 6}`}
+                              className="w-20 rounded-xl border border-border bg-background px-2.5 py-1.5 text-xs text-center focus:border-foreground/40 focus:outline-none transition-colors"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setFormAvailableSizes(prev => prev.filter((_, i) => i !== idx))}
+                              className="rounded-lg p-1 text-red-500 hover:bg-red-50 transition-colors"
+                              title="Remove size box"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Per-Size Out of Stock Checklist */}
+                      {formAvailableSizes.filter(s => s.trim() !== '').length > 0 && (
+                        <div className="flex flex-col gap-1.5 border-t border-border/60 pt-3">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-secondary">
+                            Disable Specific Sizes (Out of Stock)
+                          </span>
+                          <div className="flex flex-wrap gap-2">
+                            {formAvailableSizes.filter(s => s.trim() !== '').map((sVal) => {
+                              const isOos = formOutOfStockSizes.includes(sVal);
+                              return (
+                                <button
+                                  key={sVal}
+                                  type="button"
+                                  onClick={() => {
+                                    if (isOos) {
+                                      setFormOutOfStockSizes(prev => prev.filter(x => x !== sVal));
+                                    } else {
+                                      setFormOutOfStockSizes(prev => [...prev, sVal]);
+                                    }
+                                  }}
+                                  className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold border transition-all ${
+                                    isOos
+                                      ? 'bg-red-100 border-red-300 text-red-700 font-bold line-through'
+                                      : 'bg-background border-border text-foreground hover:border-foreground/40'
+                                  }`}
+                                >
+                                  Size {sVal} {isOos ? '(Sold Out)' : ''}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

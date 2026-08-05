@@ -5,9 +5,9 @@ import { CartItem, Product } from '@/types';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity: number, selectedSize: number | null) => void;
-  removeFromCart: (productId: string, selectedSize: number | null) => void;
-  updateQuantity: (productId: string, selectedSize: number | null, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, selectedSize: number | string | null) => void;
+  removeFromCart: (productId: string, selectedSize: number | string | null) => void;
+  updateQuantity: (productId: string, quantity: number, selectedSize?: number | string | null) => void;
   clearCart: () => void;
   cartCount: number;
   subtotal: number;
@@ -42,7 +42,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [cart, isLoaded]);
 
-  const addToCart = (product: Product, quantity: number, selectedSize: number | null) => {
+  const addToCart = (product: Product, quantity: number, selectedSize: number | string | null) => {
     // Prevent adding if out of stock and not pre-order
     if (product.availability === 'out_of_stock' && !product.is_preorder) {
       return;
@@ -69,15 +69,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeFromCart = (productId: string, selectedSize: number | null) => {
+  const removeFromCart = (productId: string, selectedSize: number | string | null) => {
     setCart((prevCart) =>
       prevCart.filter((item) => !(item.product.id === productId && item.selectedSize === selectedSize))
     );
   };
 
-  const updateQuantity = (productId: string, selectedSize: number | null, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, selectedSize?: number | string | null) => {
     if (quantity <= 0) {
-      removeFromCart(productId, selectedSize);
+      removeFromCart(productId, selectedSize || null);
       return;
     }
 

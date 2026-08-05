@@ -17,7 +17,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   const { addToCart } = useCart();
   const [currentProduct, setCurrentProduct] = useState<Product>(product);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [selectedSize, setSelectedSize] = useState<number | string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedToCartFeedback, setAddedToCartFeedback] = useState(false);
 
@@ -27,7 +27,7 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
       try {
         const { data } = await supabase
           .from('products')
-          .select('id, name, price, availability, stock_count, description, images, requires_size, max_size, is_preorder')
+          .select('id, name, price, availability, stock_count, description, images, requires_size, max_size, available_sizes, out_of_stock_sizes, is_preorder')
           .eq('id', product.id)
           .single();
         if (data) {
@@ -115,9 +115,11 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
   const isPreorder = currentProduct.is_preorder;
   const canAddToCart = !isOutOfStock || isPreorder;
 
-  // Generate sizes from 1 to max_size (if requires_size is true and max_size is set)
-  const sizeOptions: number[] = [];
-  if (currentProduct.requires_size && currentProduct.max_size) {
+  // Generate custom available sizes or fallback to 1..max_size
+  const sizeOptions: (number | string)[] = [];
+  if (currentProduct.available_sizes && currentProduct.available_sizes.length > 0) {
+    sizeOptions.push(...currentProduct.available_sizes);
+  } else if (currentProduct.requires_size && currentProduct.max_size) {
     for (let s = 1; s <= currentProduct.max_size; s++) {
       sizeOptions.push(s);
     }
@@ -284,25 +286,32 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
           </div>
 
           {/* Sizes Toggle */}
-          {product.requires_size && sizeOptions.length > 0 && (
+          {currentProduct.requires_size && sizeOptions.length > 0 && (
             <div className="flex flex-col gap-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
                 Select Size
               </span>
               <div className="flex flex-wrap gap-2">
-                {sizeOptions.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`h-9 w-9 rounded-full border text-xs font-medium transition-all ${
-                      selectedSize === size
-                        ? 'bg-foreground border-foreground text-background'
-                        : 'bg-background border-border text-foreground hover:border-foreground/40'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {sizeOptions.map((size) => {
+                  const isOos = (currentProduct.out_of_stock_sizes || []).map(String).includes(String(size));
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      disabled={isOos}
+                      onClick={() => !isOos && setSelectedSize(size)}
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                        isOos
+                          ? 'opacity-40 bg-border/20 border-border text-secondary cursor-not-allowed line-through'
+                          : selectedSize === size
+                          ? 'bg-foreground border-foreground text-background shadow-sm'
+                          : 'bg-background border-border text-foreground hover:border-foreground/40'
+                      }`}
+                    >
+                      {size} {isOos ? '(Sold Out)' : ''}
+                    </button>
+                  );
+                })}
               </div>
               {selectedSize === null && (
                 <p className="text-[10px] text-red-500 font-medium">* Please choose a size to continue</p>
