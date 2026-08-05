@@ -59,7 +59,7 @@ export async function onRequest(context) {
       return await next();
     }
 
-    // Maintenance Mode HTML Response for all public visitors
+    // Maintenance Mode HTML Response matching main site design system
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,115 +72,184 @@ export async function onRequest(context) {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #0d0f12;
-      color: #f8fafc;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #ffffff;
+      color: #111111;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      -webkit-font-smoothing: antialiased;
+    }
+    .announcement-bar {
+      background-color: #111111;
+      color: #ffffff;
+      text-align: center;
+      padding: 0.5rem 1rem;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+    }
+    .navbar {
+      border-bottom: 1px solid #ececec;
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #111111;
+      text-decoration: none;
+    }
+    .main-content {
+      flex-grow: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.5rem;
+      padding: 4rem 1.5rem;
       text-align: center;
     }
     .card {
-      max-width: 480px;
+      max-width: 520px;
       width: 100%;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      border: 1px solid #ececec;
       border-radius: 1.5rem;
-      padding: 2.5rem 2rem;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 300;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 2rem;
-      color: #ffffff;
+      padding: 3rem 2.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .badge {
-      display: inline-block;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.65rem;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.25em;
       text-transform: uppercase;
-      color: #d97706;
-      background: rgba(217, 119, 6, 0.1);
-      border: 1px solid rgba(217, 119, 6, 0.25);
-      border-radius: 9999px;
-      margin-bottom: 1.25rem;
+      color: #666666;
+      margin-bottom: 0.75rem;
     }
     h1 {
       font-size: 1.85rem;
-      font-weight: 400;
-      letter-spacing: 0.02em;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #111111;
       margin-bottom: 0.75rem;
-      color: #f8fafc;
     }
-    p {
-      font-size: 0.9rem;
-      color: #94a3b8;
+    .divider {
+      height: 1px;
+      width: 3rem;
+      background-color: rgba(17, 17, 17, 0.6);
+      margin-bottom: 1.5rem;
+    }
+    .message {
+      font-size: 0.95rem;
+      color: #666666;
       line-height: 1.6;
-      margin-bottom: 2rem;
+      margin-bottom: 2.25rem;
+      font-weight: 400;
     }
     .btn-group {
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
+      gap: 1rem;
       width: 100%;
     }
     .btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.65rem;
-      padding: 0.85rem 1.25rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      border-radius: 0.85rem;
+      gap: 0.5rem;
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border-radius: 0.75rem;
       text-decoration: none;
       transition: all 0.2s ease;
     }
-    .btn-ig {
-      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+    .btn-primary {
+      background-color: #111111;
       color: #ffffff;
+      border: 1px solid #111111;
     }
-    .btn-ig:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn-wa {
-      background-color: #25d366;
-      color: #ffffff;
+    .btn-primary:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
     }
-    .btn-wa:hover { opacity: 0.9; transform: translateY(-1px); }
-    .footer-link {
-      margin-top: 2rem;
+    .btn-secondary {
+      background-color: #ffffff;
+      color: #111111;
+      border: 1px solid #111111;
+    }
+    .btn-secondary:hover {
+      background-color: #f8fafc;
+      transform: translateY(-1px);
+    }
+    .footer {
+      border-top: 1px solid #ececec;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      background-color: #ffffff;
+    }
+    .footer-quote {
       font-size: 0.75rem;
-      color: #64748b;
-      text-decoration: none;
+      font-style: italic;
+      font-weight: 600;
+      color: #666666;
+      margin-bottom: 0.75rem;
     }
-    .footer-link:hover { color: #94a3b8; }
+    .admin-link {
+      font-size: 0.7rem;
+      color: #999999;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .admin-link:hover { color: #111111; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">Thaarakam</div>
-    <div class="badge">Maintenance Mode</div>
-    <h1>We'll be back soon</h1>
-    <p>Till then order through our dms</p>
-    <div class="btn-group">
-      <a href="https://www.instagram.com/thaarakam_by_nithara/" target="_blank" rel="noopener noreferrer" class="btn btn-ig">
-        <span>Order via Instagram DMs</span>
-      </a>
-      <a href="https://wa.me/917907572719" target="_blank" rel="noopener noreferrer" class="btn btn-wa">
-        <span>Order via WhatsApp DMs</span>
-      </a>
+  <div>
+    <div class="announcement-bar">
+      ✨ Prepaid Orders Only • Cash On Delivery (COD) is not available ✨
     </div>
+    <header class="navbar">
+      <a href="/" class="logo">Thaarakam</a>
+    </header>
   </div>
-  <a href="/admin/login/" class="footer-link">Admin Access</a>
+
+  <main class="main-content">
+    <div class="card">
+      <span class="badge">Maintenance Mode</span>
+      <h1>We'll be back soon</h1>
+      <div class="divider"></div>
+      <p class="message">Till then order through our dms</p>
+      
+      <div class="btn-group">
+        <a href="https://www.instagram.com/thaarakam_by_nithara/" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+          Order via Instagram DMs →
+        </a>
+        <a href="https://wa.me/917907572719" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+          Order via WhatsApp DMs →
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p class="footer-quote">Thaarakam is more than jewelry. It's our dream, our effort, and our promise to you.</p>
+    <a href="/admin/login/" class="admin-link">Admin Access</a>
+  </footer>
 </body>
 </html>`;
 
