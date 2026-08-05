@@ -347,6 +347,12 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
       const parsedStock = formStockCount.trim() === '' ? null : Number(formStockCount);
       const computedAvailability = (parsedStock !== null && parsedStock <= 0) ? 'out_of_stock' : formAvailability;
 
+      const computedAvailableSizes = formAvailableSizes.filter(s => s.trim() !== '');
+      const numericSizes = computedAvailableSizes.map(Number).filter(n => !isNaN(n));
+      const computedMaxSize = numericSizes.length > 0
+        ? Math.max(...numericSizes)
+        : (formRequiresSize ? Number(formMaxSize || 18) : null);
+
       const payload = {
         name: formName.trim(),
         price: Number(formPrice),
@@ -355,8 +361,8 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         description: formDescription,
         is_featured: formFeatured,
         requires_size: formRequiresSize,
-        max_size: formRequiresSize ? Number(formMaxSize || 18) : null,
-        available_sizes: formAvailableSizes.filter(s => s.trim() !== ''),
+        max_size: computedMaxSize,
+        available_sizes: computedAvailableSizes,
         out_of_stock_sizes: formOutOfStockSizes,
         is_preorder: formPreorder,
         availability: computedAvailability,
@@ -584,7 +590,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
                             )}
                             {product.requires_size && (
                               <span className="rounded bg-blue-50 border border-blue-100 text-blue-700 text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">
-                                Size Max: {product.max_size}
+                                {product.available_sizes && product.available_sizes.length > 0
+                                  ? `Sizes: ${product.available_sizes.join(', ')}`
+                                  : `Size Max: ${product.max_size}`}
                               </span>
                             )}
                           </div>
