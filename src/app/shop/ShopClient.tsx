@@ -57,28 +57,36 @@ export default function ShopClient({ products }: ShopClientProps) {
     }
   }, [products]);
 
-  // Fetch live products from Supabase on mount so newly added products & edits reflect instantly
+  // Sync live stock counts from Supabase to keep inventory real-time without heavy egress (20KB vs 3MB)
   useEffect(() => {
-    async function fetchLiveProducts() {
+    async function syncLiveStock() {
       try {
         const { data } = await supabase
           .from('products')
-          .select('id, name, price, category, images, availability, is_featured, is_preorder, stock_count, requires_size, max_size, created_at')
-          .neq('name', 'General Store Review Placeholder')
-          .order('created_at', { ascending: false });
+          .select('id, availability, stock_count')
+          .neq('name', 'General Store Review Placeholder');
 
         if (data && data.length > 0) {
-          const cleaned = data.map(item => ({
-            ...item,
-            name: item.name ? item.name.trim() : item.name,
-          }));
-          setProductsList(cleaned as Product[]);
+          const stockMap = new Map(data.map(item => [item.id, item]));
+          setProductsList(prev =>
+            prev.map(p => {
+              const live = stockMap.get(p.id);
+              if (live) {
+                return {
+                  ...p,
+                  availability: live.availability,
+                  stock_count: live.stock_count,
+                };
+              }
+              return p;
+            })
+          );
         }
       } catch (e) {
-        console.error('Error fetching live products from Supabase:', e);
+        console.error('Error syncing live stock from Supabase:', e);
       }
     }
-    fetchLiveProducts();
+    syncLiveStock();
   }, []);
 
   // Set category filter and update URL parameter
