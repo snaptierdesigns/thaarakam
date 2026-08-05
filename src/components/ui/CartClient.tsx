@@ -84,7 +84,7 @@ export default function CartClient({ settings }: CartClientProps) {
     }
 
     const orderNumber = `TH-${Date.now().toString().slice(-6)}`;
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_TJNVaCMelGkB71';
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TM6o308PZ49z5e';
 
     const options = {
       key: razorpayKey,
