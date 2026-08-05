@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/ui/CartProvider';
 import { Settings, CheckoutDetails, Order } from '@/types';
-import { Trash2, Plus, Minus, ShoppingBag, CreditCard, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, CreditCard, CheckCircle2, ShieldCheck, Calendar, Truck, Globe, Camera, MessageCircle, Mail, Heart, Sparkles, Package } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { decrementStockAfterCheckout } from '@/app/admin/actions';
 import { COUNTRIES_LIST, calculateShippingFee } from '@/lib/shipping';
@@ -178,34 +178,176 @@ export default function CartClient({ settings }: CartClientProps) {
     }
   };
 
-  // Order Confirmation Success Screen
+  // Order Confirmation Success Screen matching THAARAKAM by Nithara card design
   if (confirmedOrder) {
     return (
-      <div className="mx-auto max-w-[800px] px-4 py-20 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center gap-6">
-        <div className="rounded-full bg-green-100 p-5 text-green-600 border border-green-200">
-          <CheckCircle2 className="h-12 w-12 stroke-[1.5]" />
-        </div>
-        <div className="flex flex-col gap-2">
-          <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-green-700">
-            Payment Confirmed & Order Placed
-          </span>
-          <h1 className="text-3xl font-light tracking-wide uppercase text-foreground">
-            Thank You, {confirmedOrder.customer_name}!
-          </h1>
-          <p className="text-xs text-secondary mt-1 max-w-md mx-auto leading-relaxed">
-            Your order <strong>#{confirmedOrder.order_number}</strong> has been received and verified. Stock has been reserved for your items.
+      <div className="mx-auto max-w-[850px] px-4 py-12 sm:px-6 lg:px-8 flex flex-col items-center gap-8">
+        
+        {/* Luxury Confirmation Card Container */}
+        <div className="w-full rounded-3xl border border-border bg-background p-6 sm:p-10 shadow-sm flex flex-col items-center text-center gap-6 relative overflow-hidden">
+          
+          {/* Top Decorative Sparkles */}
+          <div className="flex items-center justify-center gap-2 text-secondary/60">
+            <Sparkles className="h-4 w-4 stroke-[1.5]" />
+          </div>
+
+          {/* Brand Name */}
+          <div className="flex flex-col items-center gap-1">
+            <h1 className="text-2xl sm:text-3xl font-light tracking-[0.25em] uppercase text-foreground">
+              T H A A R A K A M
+            </h1>
+            <div className="flex items-center gap-2 text-xs font-serif italic text-secondary">
+              <span className="h-[1px] w-6 bg-border"></span>
+              by Nithara
+              <span className="h-[1px] w-6 bg-border"></span>
+            </div>
+          </div>
+
+          {/* Checkmark Circle */}
+          <div className="rounded-full bg-foreground text-background p-3 my-1 shadow-sm">
+            <CheckCircle2 className="h-7 w-7 stroke-[2]" />
+          </div>
+
+          {/* Headline & Subheadline */}
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg sm:text-xl font-bold uppercase tracking-wider text-foreground">
+              PAYMENT SUCCESSFULLY CREDITED
+            </h2>
+            <p className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-secondary">
+              YOUR ORDER IS SUCCESSFULLY PLACED
+            </p>
+            <div className="text-red-400 text-xs mt-1">♥</div>
+          </div>
+
+          {/* Packaged with Love Pill */}
+          <div className="inline-flex items-center gap-2.5 rounded-2xl border border-border bg-border/10 px-5 py-3 text-xs font-semibold text-foreground tracking-wide">
+            <Package className="h-4 w-4 text-secondary shrink-0" />
+            WE CAREFULLY PACK YOUR ORDER WITH LOVE.
+          </div>
+
+          {/* Delivery Promise */}
+          <p className="text-xs sm:text-sm font-medium text-foreground tracking-wide">
+            PLEASE ALLOW UP TO <strong className="font-bold">10 WORKING DAYS</strong> FOR DELIVERY.
           </p>
+
+          {/* Timelines Grid (Dispatch & Delivery) */}
+          <div className="w-full rounded-2xl border border-border bg-border/5 p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+            
+            {/* Dispatch Time */}
+            <div className="flex flex-col items-center text-center justify-between gap-3 border-b md:border-b-0 md:border-r border-border pb-6 md:pb-0 md:pr-6">
+              <div className="rounded-full bg-background border border-border p-3 shadow-xs">
+                <Calendar className="h-5 w-5 text-foreground stroke-[1.5]" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                DISPATCH TIME
+              </span>
+              <div className="w-16 border-t border-dotted border-border/80 my-0.5"></div>
+              <div className="w-full rounded-xl bg-border/20 py-3 text-sm font-bold uppercase tracking-wider text-foreground">
+                UP TO 3 <span className="text-[10px] font-normal block text-secondary">WORKING DAYS</span>
+              </div>
+            </div>
+
+            {/* Delivery Time (After Dispatch) */}
+            <div className="flex flex-col items-center text-center justify-between gap-3">
+              <div className="rounded-full bg-background border border-border p-3 shadow-xs">
+                <Truck className="h-5 w-5 text-foreground stroke-[1.5]" />
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                DELIVERY TIME (AFTER DISPATCH)
+              </span>
+              <div className="w-16 border-t border-dotted border-border/80 my-0.5"></div>
+              
+              <div className="grid grid-cols-2 gap-3 w-full">
+                <div className="flex flex-col items-center justify-center rounded-xl bg-border/20 py-2.5 px-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-secondary mb-1">
+                    📍 INSIDE KERALA
+                  </span>
+                  <span className="text-sm font-bold text-foreground">3–5</span>
+                  <span className="text-[9px] text-secondary uppercase font-medium">WORKING DAYS</span>
+                </div>
+
+                <div className="flex flex-col items-center justify-center rounded-xl bg-border/20 py-2.5 px-2">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-secondary mb-1">
+                    📍 OUTSIDE KERALA
+                  </span>
+                  <span className="text-sm font-bold text-foreground">5–8</span>
+                  <span className="text-[9px] text-secondary uppercase font-medium">WORKING DAYS</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Delivery Partner Banner */}
+          <div className="w-full rounded-xl border border-border bg-background p-3.5 flex items-center justify-center gap-3 text-xs font-semibold text-foreground">
+            <span className="uppercase tracking-wider text-secondary font-bold">DELIVERY PARTNER</span>
+            <span className="text-border">|</span>
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-red-700 text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">India Post</span>
+              <span>Speed Post</span>
+            </div>
+          </div>
+
+          {/* Need Help Box */}
+          <div className="w-full rounded-2xl border border-border bg-border/5 p-6 flex flex-col items-center gap-4 text-center">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+              NEED HELP?
+            </h3>
+            <p className="text-xs text-secondary leading-relaxed max-w-lg">
+              If your order is not delivered within <strong>10 working days</strong>, you can directly contact us and raise a complaint.
+            </p>
+
+            {/* Contact Channels Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full mt-1">
+              <Link href="/track-order" className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-background hover:border-foreground/40 transition-colors">
+                <Globe className="h-4 w-4 text-foreground" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-foreground">WEBSITE TRACK</span>
+              </Link>
+
+              <a href="https://instagram.com/thaarakam_by_nithara" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-background hover:border-foreground/40 transition-colors">
+                <Camera className="h-4 w-4 text-foreground" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-foreground">INSTAGRAM DM</span>
+              </a>
+
+              <a href="https://wa.me/918921356009" target="_blank" rel="noopener noreferrer" className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-background hover:border-foreground/40 transition-colors">
+                <MessageCircle className="h-4 w-4 text-foreground" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-foreground">WHATSAPP</span>
+              </a>
+
+              <Link href="/contact" className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-border bg-background hover:border-foreground/40 transition-colors">
+                <Mail className="h-4 w-4 text-foreground" />
+                <span className="text-[9px] font-bold uppercase tracking-wider text-foreground">OTHER CONTACT</span>
+              </Link>
+            </div>
+
+            <p className="text-xs font-serif italic text-secondary mt-1">
+              We will look into it.
+            </p>
+          </div>
+
+          {/* Footer Signature */}
+          <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.25em] text-secondary mt-2">
+            <span className="text-red-400">♥</span> T H A N K &nbsp; Y O U &nbsp; F O R &nbsp; S U P P O R T I N G &nbsp; U S ! <span className="text-red-400">♥</span>
+          </div>
+
         </div>
 
+        {/* Order Details & Receipt Card */}
         <div className="w-full rounded-2xl border border-border bg-background p-6 text-left flex flex-col gap-4 shadow-sm">
+          <div className="flex justify-between items-center border-b border-border pb-3 text-xs">
+            <span className="font-semibold text-secondary">Order Number:</span>
+            <span className="font-mono text-foreground font-bold">#{confirmedOrder.order_number}</span>
+          </div>
+
           <div className="flex justify-between items-center border-b border-border pb-3 text-xs">
             <span className="font-semibold text-secondary">Payment Reference:</span>
             <span className="font-mono text-foreground font-bold">{confirmedOrder.payment_id}</span>
           </div>
 
-          <div className="flex flex-col gap-2 text-xs">
-            <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">Shipping Destination:</span>
+          <div className="flex flex-col gap-1 text-xs">
+            <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">Delivery Address:</span>
             <p className="text-secondary leading-relaxed">
+              {confirmedOrder.customer_name} ({confirmedOrder.customer_phone})<br />
               {confirmedOrder.address}, {confirmedOrder.city}, {confirmedOrder.state}, <strong>{confirmedOrder.country}</strong> - {confirmedOrder.pincode}
             </p>
           </div>
@@ -226,12 +368,22 @@ export default function CartClient({ settings }: CartClientProps) {
           </div>
         </div>
 
-        <Link
-          href="/shop"
-          className="rounded-xl bg-foreground px-8 py-3.5 text-xs font-bold uppercase tracking-wider text-background hover:opacity-90 active:scale-[0.98] transition-all mt-2"
-        >
-          Continue Shopping →
-        </Link>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
+          <Link
+            href="/track-order"
+            className="flex-1 rounded-xl bg-foreground text-background py-3.5 text-xs font-bold uppercase tracking-wider text-center hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+          >
+            Track Your Order →
+          </Link>
+          <Link
+            href="/shop"
+            className="flex-1 rounded-xl border border-border bg-background text-foreground py-3.5 text-xs font-bold uppercase tracking-wider text-center hover:border-foreground/40 active:scale-[0.98] transition-all"
+          >
+            Continue Shopping
+          </Link>
+        </div>
+
       </div>
     );
   }
