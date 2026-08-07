@@ -241,7 +241,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     });
   };
 
-  // Direct client-side ImgBB upload (0% server CPU usage)
+  // Direct client-side keyless image upload (Catbox.moe + local compressed fallback)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -251,28 +251,29 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      const apiKey = 'd3905eac5d51cfab6cde5c943670d3e0';
-      const formData = new FormData();
-      formData.append('image', file);
+      // 1. Primary: Upload to Catbox.moe (100% Free, Keyless, Permanent HTTPS CDN)
+      const catboxForm = new FormData();
+      catboxForm.append('reqtype', 'fileupload');
+      catboxForm.append('fileToUpload', file);
 
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+      const response = await fetch('https://catbox.moe/user/api.php', {
         method: 'POST',
-        body: formData,
+        body: catboxForm,
       });
 
       if (response.ok) {
-        const resJson = await response.json();
-        if (resJson.success && resJson.data && resJson.data.url) {
+        const catboxUrl = (await response.text()).trim();
+        if (catboxUrl.startsWith('http')) {
           setFormImages((prev) => {
             const next = [...prev];
-            next[slotIndex] = resJson.data.url;
+            next[slotIndex] = catboxUrl;
             return next;
           });
           return;
         }
       }
 
-      // Fallback: local compressed base64 if ImgBB fails
+      // 2. Fallback: local compressed base64 if Catbox fails
       const smallDataUri = await compressImageForLocalDb(file);
       setFormImages((prev) => {
         const next = [...prev];
