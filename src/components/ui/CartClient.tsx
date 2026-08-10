@@ -30,8 +30,8 @@ export default function CartClient({ settings }: CartClientProps) {
   const [paying, setPaying] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
-  // Dynamic Shipping Calculation based on Selected Country and State
-  const shippingFee = calculateShippingFee(form.country, form.state);
+  // Dynamic Shipping Calculation based on Selected Country, State, and Admin Settings
+  const shippingFee = calculateShippingFee(form.country, form.state, settings);
   const grandTotal = subtotal + shippingFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -86,6 +86,15 @@ export default function CartClient({ settings }: CartClientProps) {
     const orderNumber = `TH-${Date.now().toString().slice(-6)}`;
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TM6o308PZ49z5e';
 
+    const formattedItems = cart.map((item) => ({
+      id: item.product.id,
+      name: item.product.name,
+      price: item.product.price,
+      quantity: item.quantity,
+      selectedSize: item.selectedSize || null,
+      image: item.product.images?.[0] || null,
+    }));
+
     const options = {
       key: razorpayKey,
       amount: grandTotal * 100, // Amount in paise
@@ -100,7 +109,17 @@ export default function CartClient({ settings }: CartClientProps) {
       },
       notes: {
         order_number: orderNumber,
+        customer_name: form.fullName.trim(),
+        customer_phone: form.phone.trim(),
+        customer_email: form.email ? form.email.trim() : '',
+        address: form.address.trim(),
+        city: form.city.trim(),
+        state: form.state.trim(),
+        country: form.country || 'India',
+        pincode: form.pinCode.trim(),
+        shipping_fee: String(shippingFee),
         shipping_address: `${form.address}, ${form.city}, ${form.state}, ${form.country} - ${form.pinCode}`,
+        items_json: JSON.stringify(formattedItems),
       },
       theme: {
         color: '#111111',

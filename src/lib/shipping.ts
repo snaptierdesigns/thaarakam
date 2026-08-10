@@ -30,17 +30,25 @@ export const COUNTRIES_LIST = [
   'Lakshadweep',
 ];
 
-export function calculateShippingFee(country: string, state?: string): number {
+export function calculateShippingFee(
+  country: string,
+  state?: string,
+  settings?: { shipping_kerala?: number; shipping_south_india?: number; shipping_north_india?: number } | null
+): number {
+  const rateKerala = settings?.shipping_kerala ?? 50;
+  const rateSouth = settings?.shipping_south_india ?? 60;
+  const rateRest = settings?.shipping_north_india ?? 80;
+
   if (!country || country === 'India') {
     const stateLower = (state || '').toLowerCase().trim();
     if (stateLower.includes('kerala')) {
-      return 50;
+      return rateKerala;
     }
     const southIndiaStates = ['tamil nadu', 'karnataka', 'andhra pradesh', 'telangana', 'puducherry', 'goa'];
     if (southIndiaStates.some(s => stateLower.includes(s))) {
-      return 60;
+      return rateSouth;
     }
-    return 80; // Rest of India / North India
+    return rateRest;
   }
 
   return INTERNATIONAL_SHIPPING_RATES[country] || 2500;

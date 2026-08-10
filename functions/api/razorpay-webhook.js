@@ -46,10 +46,12 @@ export async function onRequestPost(context) {
         const customerPhone = notes.customer_phone || phone || '0000000000';
         const customerEmail = notes.customer_email || email;
         const address = notes.address || notes.shipping_address || 'Customer Order via Razorpay';
-        const city = notes.city || 'Kerala';
-        const state = notes.state || 'Kerala';
+        const city = notes.city || '';
+        const state = notes.state || '';
         const country = notes.country || 'India';
-        const pincode = notes.pincode || '000000';
+        const pincode = notes.pincode || '';
+        const shippingFee = notes.shipping_fee ? Number(notes.shipping_fee) : 50;
+        const subtotal = amountINR - shippingFee;
 
         let items = [];
         if (notes.items_json) {
@@ -61,7 +63,7 @@ export async function onRequestPost(context) {
         }
 
         if (!items || items.length === 0) {
-          items = [{ id: 'razorpay-item', name: 'Jewellery Order', price: amountINR - 50, quantity: 1 }];
+          items = [{ id: 'razorpay-item', name: 'Jewellery Order', price: subtotal > 0 ? subtotal : amountINR, quantity: 1 }];
         }
 
         const supabaseUrl = 'https://kvgipdvlnpghxzsgxptz.supabase.co';
@@ -105,8 +107,8 @@ export async function onRequestPost(context) {
               country: country,
               pincode: pincode,
               items: items,
-              subtotal: amountINR - 50,
-              shipping_fee: 50,
+              subtotal: subtotal > 0 ? subtotal : amountINR,
+              shipping_fee: shippingFee,
               grand_total: amountINR,
               payment_id: paymentId,
               payment_status: 'paid',
