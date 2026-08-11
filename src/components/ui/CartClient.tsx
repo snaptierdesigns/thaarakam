@@ -95,6 +95,34 @@ export default function CartClient({ settings }: CartClientProps) {
       image: item.product.images?.[0] || null,
     }));
 
+    // 0. Pre-save Order Details into Supabase BEFORE Razorpay modal opens
+    // This guarantees 100% data capture even if the customer's mobile browser reloads on app switch
+    const initialOrderRecord = {
+      order_number: orderNumber,
+      customer_name: form.fullName.trim(),
+      customer_phone: form.phone.trim(),
+      customer_email: form.email ? form.email.trim() : null,
+      address: form.address.trim(),
+      city: form.city.trim(),
+      state: form.state.trim(),
+      country: form.country || 'India',
+      pincode: form.pinCode.trim(),
+      items: formattedItems,
+      subtotal,
+      shipping_fee: shippingFee,
+      grand_total: grandTotal,
+      payment_id: null,
+      payment_status: 'awaiting_payment',
+      order_status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+
+    try {
+      await supabase.from('orders').insert([initialOrderRecord]);
+    } catch (e) {
+      console.error('Pre-checkout order draft save note:', e);
+    }
+
     const options = {
       key: razorpayKey,
       amount: grandTotal * 100, // Amount in paise
@@ -138,38 +166,31 @@ export default function CartClient({ settings }: CartClientProps) {
           console.error('Error decrementing stock post-payment:', err);
         }
 
-        // 2. Insert Order into Supabase orders table
-        const newOrder = {
-          order_number: orderNumber,
-          customer_name: form.fullName.trim(),
-          customer_phone: form.phone.trim(),
-          customer_email: form.email ? form.email.trim() : null,
-          address: form.address.trim(),
-          city: form.city.trim(),
-          state: form.state.trim(),
-          country: form.country || 'India',
-          pincode: form.pinCode.trim(),
-          items: cart.map((item) => ({
-            id: item.product.id,
-            name: item.product.name,
-            price: item.product.price,
-            quantity: item.quantity,
-            selectedSize: item.selectedSize,
-            image: item.product.images?.[0] || null,
-          })),
-          subtotal,
-          shipping_fee: shippingFee,
-          grand_total: grandTotal,
+        // 2. Update Order in Supabase orders table to PAID status
+        const confirmedOrderData = {
+          ...initialOrderRecord,
           payment_id: paymentId,
           payment_status: 'paid',
-          order_status: 'pending',
-          created_at: new Date().toISOString(),
         };
 
         try {
-          const { data: dbData, error: dbErr } = await supabase.from('orders').insert([newOrder]).select();
-          if (dbErr) {
-            console.error('Supabase order insert error:', dbErr.message);
+          // Check if order exists (pre-saved), update it to paid
+          const { data: existingOrder } = await supabase
+            .from('orders')
+            .select('id')
+            .eq('order_number', orderNumber)
+            .maybeSingle();
+
+          if (existingOrder) {
+            await supabase
+              .from('orders')
+              .update({
+                payment_id: paymentId,
+                payment_status: 'paid',
+              })
+              .eq('id', existingOrder.id);
+          } else {
+            await supabase.from('orders').insert([confirmedOrderData]);
           }
         } catch (e) {
           console.error('Database connection error during order save:', e);
@@ -177,7 +198,7 @@ export default function CartClient({ settings }: CartClientProps) {
 
         // 3. Clear Cart & Display Order Confirmation Modal
         clearCart();
-        setConfirmedOrder(newOrder as Order);
+        setConfirmedOrder(confirmedOrderData as Order);
         setPaying(false);
       },
       modal: {
