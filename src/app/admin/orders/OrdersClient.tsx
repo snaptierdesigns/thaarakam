@@ -57,29 +57,6 @@ export default function OrdersClient() {
     }
   };
 
-  const handleTogglePaymentStatus = async (orderId: string, currentStatus: string | undefined) => {
-    const newStatus = currentStatus === 'paid' ? 'awaiting_payment' : 'paid';
-    try {
-      setUpdatingId(orderId);
-      const { error } = await supabase
-        .from('orders')
-        .update({ payment_status: newStatus })
-        .eq('id', orderId);
-
-      if (error) {
-        alert(`Failed to update payment status: ${error.message}`);
-      } else {
-        setOrders(prev =>
-          prev.map(o => (o.id === orderId ? { ...o, payment_status: newStatus as any } : o))
-        );
-      }
-    } catch (e) {
-      console.error('Error updating payment status:', e);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
   const getWhatsappLink = (phone: string, orderNumber: string) => {
     let cleanPhone = phone.replace(/\D/g, '');
     if (cleanPhone.length === 10) {
@@ -211,11 +188,8 @@ export default function OrdersClient() {
                     {order.order_status}
                   </span>
 
-                  <button
-                    onClick={() => handleTogglePaymentStatus(order.id, order.payment_status)}
-                    disabled={updatingId === order.id}
-                    title="Click to toggle Payment Status between Paid and Awaiting Payment"
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border cursor-pointer hover:opacity-80 transition-all ${
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${
                       order.payment_status === 'paid'
                         ? 'bg-green-100 text-green-700 border-green-200'
                         : 'bg-amber-100 text-amber-800 border-amber-200'
@@ -230,7 +204,7 @@ export default function OrdersClient() {
                         <Clock className="h-3 w-3 text-amber-600" /> Payment: AWAITING
                       </>
                     )}
-                  </button>
+                  </span>
                 </div>
               </div>
 
