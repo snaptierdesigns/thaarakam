@@ -71,7 +71,7 @@ export interface Order {
   grand_total: number;
   payment_id?: string | null;
   razorpay_order_id?: string | null;
-  payment_status: 'pending' | 'paid' | 'failed';
+  payment_status: 'pending' | 'paid' | 'failed' | 'awaiting_payment';
   order_status: 'pending' | 'processing' | 'completed' | 'cancelled';
   consignment_number?: string | null;
   created_at: string;

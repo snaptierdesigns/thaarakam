@@ -404,26 +404,46 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     }
   };
 
-  // Client filtering
-  const filteredProducts = productsList.filter((product) => {
-    const matchesSearch = searchQuery
-      ? product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      : true;
+  // Helper to get stock priority: 1 = In Stock, 2 = Low Stock (<= 3), 3 = Out of Stock
+  const getStockPriority = (product: Product): number => {
+    const isOutOfStock = product.availability === 'out_of_stock' || product.stock_count === 0;
+    if (isOutOfStock) return 3;
 
-    const matchesCategory = filterCategory ? product.category === filterCategory : true;
-    const matchesAvailability = filterAvailability ? product.availability === filterAvailability : true;
-    
-    const matchesFeatured = filterFeatured !== null
-      ? product.is_featured === filterFeatured
-      : true;
+    const isLowStock = product.stock_count !== null && product.stock_count !== undefined && product.stock_count > 0 && product.stock_count <= 3;
+    if (isLowStock) return 2;
+
+    return 1; // In stock
+  };
+
+  // Client filtering and stockwise sorting
+  const filteredProducts = productsList
+    .filter((product) => {
+      const matchesSearch = searchQuery
+        ? product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.category.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+
+      const matchesCategory = filterCategory ? product.category === filterCategory : true;
+      const matchesAvailability = filterAvailability ? product.availability === filterAvailability : true;
       
-    const matchesPreorder = filterPreorder !== null
-      ? product.is_preorder === filterPreorder
-      : true;
+      const matchesFeatured = filterFeatured !== null
+        ? product.is_featured === filterFeatured
+        : true;
+        
+      const matchesPreorder = filterPreorder !== null
+        ? product.is_preorder === filterPreorder
+        : true;
 
-    return matchesSearch && matchesCategory && matchesAvailability && matchesFeatured && matchesPreorder;
-  });
+      return matchesSearch && matchesCategory && matchesAvailability && matchesFeatured && matchesPreorder;
+    })
+    .sort((a, b) => {
+      const priorityA = getStockPriority(a);
+      const priorityB = getStockPriority(b);
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      return 0; // Maintain default creation date order within same stock tier
+    });
 
   return (
     <div className="flex flex-col gap-6">

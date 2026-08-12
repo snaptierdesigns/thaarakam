@@ -99,20 +99,40 @@ export default function ShopClient({ products }: ShopClientProps) {
     handleCategorySelect(null);
   };
 
-  // Filter products based on search query and category selection
-  const filteredProducts = productsList.filter((product) => {
-    const matchesCategory = selectedCategory
-      ? product.category === selectedCategory
-      : true;
-      
-    const searchLower = searchQuery.toLowerCase().trim();
-    const matchesSearch = searchLower
-      ? product.name.toLowerCase().includes(searchLower) ||
-        product.category.toLowerCase().includes(searchLower)
-      : true;
+  // Helper to get stock priority: 1 = In Stock, 2 = Low Stock (<= 3), 3 = Out of Stock
+  const getStockPriority = (product: Product): number => {
+    const isOutOfStock = product.availability === 'out_of_stock' || product.stock_count === 0;
+    if (isOutOfStock) return 3;
 
-    return matchesCategory && matchesSearch;
-  });
+    const isLowStock = product.stock_count !== null && product.stock_count !== undefined && product.stock_count > 0 && product.stock_count <= 3;
+    if (isLowStock) return 2;
+
+    return 1; // In stock
+  };
+
+  // Filter products based on search query and category selection, then sort by stock availability
+  const filteredProducts = productsList
+    .filter((product) => {
+      const matchesCategory = selectedCategory
+        ? product.category === selectedCategory
+        : true;
+        
+      const searchLower = searchQuery.toLowerCase().trim();
+      const matchesSearch = searchLower
+        ? product.name.toLowerCase().includes(searchLower) ||
+          product.category.toLowerCase().includes(searchLower)
+        : true;
+
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      const priorityA = getStockPriority(a);
+      const priorityB = getStockPriority(b);
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      return 0; // Maintain creation date order within same stock tier
+    });
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6 lg:px-8">
