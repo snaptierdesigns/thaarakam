@@ -66,8 +66,8 @@ export async function onRequestPost(context) {
           items = [{ id: 'razorpay-item', name: 'Jewellery Order', price: subtotal > 0 ? subtotal : amountINR, quantity: 1 }];
         }
 
-        const supabaseUrl = 'https://kvgipdvlnpghxzsgxptz.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt2Z2lwZHZsbnBnaHh6c2d4cHR6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTY3ODM1NywiZXhwIjoyMTAxMjU0MzU3fQ.EDTzTOtaYmg4jSGhnvVhQpAlmpSf25FaKHjtwh0-Fao';
+        const supabaseUrl = 'https://qkebwcsyvazjcbukyyvu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrZWJ3Y3N5dmF6amNidWt5eXZ1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NTkyNDc1NCwiZXhwIjoyMTAxNTAwNzU0fQ.AWhi8mHOyEuiG7jcgXZ5yuOzdIX80xrW2MK-untK7K0';
 
         // Check if order already exists in Supabase by payment_id or order_number
         const checkRes = await fetch(`${supabaseUrl}/rest/v1/orders?or=(payment_id.eq.${paymentId},order_number.eq.${orderNumber})`, {
