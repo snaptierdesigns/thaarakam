@@ -9,6 +9,7 @@ import { Order } from '@/types';
 export default function OrdersClient() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -16,16 +17,21 @@ export default function OrdersClient() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      setFetchError(null);
       const { data, error } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (data && !error) {
+      if (error) {
+        console.error('Error fetching orders:', error);
+        setFetchError(error.message || 'Database error occurred. Please check Supabase project status/billing.');
+      } else if (data) {
         setOrders(data as Order[]);
       }
-    } catch (e) {
-      console.error('Error fetching orders:', e);
+    } catch (e: any) {
+      console.error('Error fetching orders exception:', e);
+      setFetchError(e?.message || 'An unexpected connection error occurred.');
     } finally {
       setLoading(false);
     }
@@ -71,10 +77,10 @@ export default function OrdersClient() {
     const query = searchQuery.toLowerCase().trim();
     const matchesSearch =
       !query ||
-      o.order_number.toLowerCase().includes(query) ||
-      o.customer_name.toLowerCase().includes(query) ||
-      o.customer_phone.includes(query) ||
-      o.city.toLowerCase().includes(query) ||
+      (o.order_number && o.order_number.toLowerCase().includes(query)) ||
+      (o.customer_name && o.customer_name.toLowerCase().includes(query)) ||
+      (o.customer_phone && o.customer_phone.includes(query)) ||
+      (o.city && o.city.toLowerCase().includes(query)) ||
       (o.country && o.country.toLowerCase().includes(query));
 
     return matchesStatus && matchesSearch;
@@ -82,6 +88,19 @@ export default function OrdersClient() {
 
   return (
     <div className="mx-auto max-w-[1280px] px-4 py-10 sm:px-6 lg:px-8">
+      
+      {/* Database Error Banner if Supabase returned 402/Billing/Network error */}
+      {fetchError && (
+        <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs text-red-800 flex flex-col gap-1">
+          <span className="font-bold flex items-center gap-2">
+            ⚠️ Database Connection Notice:
+          </span>
+          <span>{fetchError}</span>
+          <span className="text-[10px] text-red-600 mt-1">
+            If Supabase billing egress quota is exceeded, please log in to Supabase Dashboard to uncap/reset egress limits.
+          </span>
+        </div>
+      )}
       
       {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
