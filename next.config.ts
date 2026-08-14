@@ -12,12 +12,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'kvgipdvlnpghxzsgxptz.supabase.co',
-        port: '',
-        pathname: '/storage/v1/object/public/**',
-      },
+
       {
         protocol: 'https',
         hostname: 'i.ibb.co',

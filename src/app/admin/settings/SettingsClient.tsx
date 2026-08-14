@@ -30,8 +30,8 @@ export default function SettingsClient({ initialSettings }: SettingsClientProps)
     logo_url: getCleanLogoUrl(),
     whatsapp_number: initialSettings?.whatsapp_number ?? '',
     store_email: initialSettings?.store_email ?? '',
-    shipping_kerala: initialSettings?.shipping_kerala ?? 50,
-    shipping_south_india: initialSettings?.shipping_south_india ?? 60,
+    shipping_kerala: initialSettings?.shipping_kerala ?? 60,
+    shipping_south_india: initialSettings?.shipping_south_india ?? 70,
     shipping_north_india: initialSettings?.shipping_north_india ?? 80,
     default_description: initialSettings?.default_description ?? '',
   });

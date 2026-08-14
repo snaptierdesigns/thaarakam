@@ -35,8 +35,8 @@ export function calculateShippingFee(
   state?: string,
   settings?: { shipping_kerala?: number; shipping_south_india?: number; shipping_north_india?: number } | null
 ): number {
-  const rateKerala = settings?.shipping_kerala ?? 50;
-  const rateSouth = settings?.shipping_south_india ?? 60;
+  const rateKerala = settings?.shipping_kerala ?? 60;
+  const rateSouth = settings?.shipping_south_india ?? 70;
   const rateRest = settings?.shipping_north_india ?? 80;
 
   if (!country || country === 'India') {
