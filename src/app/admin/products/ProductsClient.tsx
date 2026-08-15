@@ -117,7 +117,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setFormAvailableSizes((product.available_sizes || []).map(String));
     setFormOutOfStockSizes((product.out_of_stock_sizes || []).map(String));
     setFormPreorder(product.is_preorder);
-    setFormAvailability(product.availability);
+    setFormAvailability((product.stock_count !== null && product.stock_count > 0) ? 'in_stock' : product.availability);
     setFormStockCount(product.stock_count !== null && product.stock_count !== undefined ? product.stock_count.toString() : '');
     setStatus(null);
     setSaving(false);
@@ -352,7 +352,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
 
     try {
       const parsedStock = formStockCount.trim() === '' ? null : Number(formStockCount);
-      const computedAvailability = (parsedStock !== null && parsedStock <= 0) ? 'out_of_stock' : formAvailability;
+      const computedAvailability = (parsedStock !== null && parsedStock <= 0) ? 'out_of_stock' : (parsedStock !== null && parsedStock > 0) ? 'in_stock' : formAvailability;
 
       const computedAvailableSizes = formAvailableSizes.filter(s => s.trim() !== '');
       const numericSizes = computedAvailableSizes.map(Number).filter(n => !isNaN(n));
