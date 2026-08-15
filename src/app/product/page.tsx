@@ -29,7 +29,22 @@ function ProductContent() {
         setLoading(true);
         setError(false);
 
-        // 1. Try loading from Cloudflare CDN static asset (0 BYTES Supabase Egress!)
+        const DEFAULT_DESC = `Details\n• Material: 316L Stainless Steel\n• Finish: Anti-tarnish, High Polish\n• Lightweight & comfortable for all-day wear\n• Hypoallergenic & skin-friendly\n\nCare\nAvoid harsh chemicals and perfumes.\nWipe gently after use and store in a dry place for extended shine.`;
+
+        // 1. Fetch live product & settings directly from Supabase so new products & edits load instantly
+        const [productRes, settingsRes] = await Promise.all([
+          supabase.from('products').select('*').eq('id', id).single(),
+          supabase.from('settings').select('*').eq('id', 1).single()
+        ]);
+
+        if (productRes.data && !productRes.error) {
+          setProduct(productRes.data as Product);
+          setDefaultDescription(settingsRes.data?.default_description || DEFAULT_DESC);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fallback to static CDN asset if Supabase connection fails
         try {
           const res = await fetch('/data/products.json');
           if (res.ok) {
@@ -37,9 +52,7 @@ function ProductContent() {
             const found = cdnData.find((p) => p.id === id);
             if (found) {
               setProduct(found);
-              setDefaultDescription(
-                'Details\n• Material: 316L Stainless Steel\n• Finish: Anti-tarnish, High Polish\n• Lightweight & comfortable for all-day wear\n• Hypoallergenic & skin-friendly\n\nCare\nAvoid harsh chemicals and perfumes.\nWipe gently after use and store in a dry place for extended shine.'
-              );
+              setDefaultDescription(DEFAULT_DESC);
               setLoading(false);
               return;
             }
@@ -48,22 +61,7 @@ function ProductContent() {
           console.warn('CDN asset load fallback:', e);
         }
 
-        // 2. Fallback to Supabase if newly added or not in CDN file
-        const [productRes, settingsRes] = await Promise.all([
-          supabase.from('products').select('*').eq('id', id).single(),
-          supabase.from('settings').select('*').eq('id', 1).single()
-        ]);
-
-        if (productRes.error || !productRes.data) {
-          console.error('Error fetching product:', productRes.error);
-          setError(true);
-          return;
-        }
-
-        setProduct(productRes.data as Product);
-        if (settingsRes.data) {
-          setDefaultDescription(settingsRes.data.default_description || '');
-        }
+        setError(true);
       } catch (err) {
         console.error('Unexpected error loading product:', err);
         setError(true);

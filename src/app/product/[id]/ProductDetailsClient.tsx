@@ -132,9 +132,12 @@ export default function ProductDetailsClient({ product, defaultDescription }: Pr
     setQuantity(val);
   };
 
+  const DEFAULT_DESC_FALLBACK = `Details\n• Material: 316L Stainless Steel\n• Finish: Anti-tarnish, High Polish\n• Lightweight & comfortable for all-day wear\n• Hypoallergenic & skin-friendly\n\nCare\nAvoid harsh chemicals and perfumes.\nWipe gently after use and store in a dry place for extended shine.`;
+
   // Assemble the description
+  const activeDefaultDesc = defaultDescription?.trim() || DEFAULT_DESC_FALLBACK;
   const fullDescription = [
-    defaultDescription,
+    activeDefaultDesc,
     currentProduct.description
   ].filter(Boolean).join('\n\n* \n\n');
 
