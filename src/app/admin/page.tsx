@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { LayoutDashboard, ShoppingBag, Tag, CheckCircle2, AlertTriangle, Clock, Plus, Eye, Package } from 'lucide-react';
 
 // Enable static export caching for admin dashboard
-export const revalidate = 86400;
+
 
 async function getDashboardStats() {
   try {

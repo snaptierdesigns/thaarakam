@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Settings } from '@/types';
 
 // Enable static export caching for admin settings page
-export const revalidate = 86400;
+
 
 async function getSettings() {
   try {

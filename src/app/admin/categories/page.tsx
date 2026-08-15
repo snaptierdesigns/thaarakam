@@ -5,7 +5,7 @@ import { CATEGORIES } from '@/types';
 import { Eye, Layers } from 'lucide-react';
 
 // Enable static export caching for admin categories page
-export const revalidate = 86400;
+
 
 async function getCategoryMetrics() {
   try {

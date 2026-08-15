@@ -3,8 +3,7 @@ import ProductsClient from './ProductsClient';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 
-// Enable static export caching for admin products page
-export const revalidate = 86400;
+
 
 async function getProducts() {
   try {

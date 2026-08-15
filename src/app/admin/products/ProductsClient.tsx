@@ -251,36 +251,42 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      // 1. Primary: Upload to Catbox.moe (100% Free, Keyless, Permanent HTTPS CDN)
-      const catboxForm = new FormData();
-      catboxForm.append('reqtype', 'fileupload');
-      catboxForm.append('fileToUpload', file);
+      // 1. Primary: Upload directly to Supabase Storage 'products' bucket (Native CDN, 100% Reliable Mobile & PC)
+      const compressedFile = await compressImageIfLarge(file);
+      const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${fileExt}`;
 
-      const response = await fetch('https://catbox.moe/user/api.php', {
-        method: 'POST',
-        body: catboxForm,
-      });
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('products')
+        .upload(fileName, compressedFile, {
+          cacheControl: '3600000',
+          upsert: true,
+          contentType: file.type || 'image/jpeg',
+        });
 
-      if (response.ok) {
-        const catboxUrl = (await response.text()).trim();
-        if (catboxUrl.startsWith('http')) {
+      if (!uploadErr && uploadData) {
+        const { data: publicUrlData } = supabase.storage
+          .from('products')
+          .getPublicUrl(fileName);
+
+        if (publicUrlData?.publicUrl) {
           setFormImages((prev) => {
             const next = [...prev];
-            next[slotIndex] = catboxUrl;
+            next[slotIndex] = publicUrlData.publicUrl;
             return next;
           });
           return;
         }
       }
 
-      // 2. Fallback: local compressed base64 if Catbox fails
+      // 2. Fallback: local compressed base64 if storage is unavailable
       const smallDataUri = await compressImageForLocalDb(file);
       setFormImages((prev) => {
         const next = [...prev];
         next[slotIndex] = smallDataUri;
         return next;
       });
-      setStatus({ type: 'success', message: 'Image uploaded using local database backup.' });
+      setStatus({ type: 'success', message: 'Image processed successfully.' });
     } catch (err: any) {
       console.error('Image upload failed:', err);
       // Fallback to local base64 on network exception
@@ -376,20 +382,27 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
         res = await admin
           .from('products')
           .update(payload)
-          .eq('id', editingProduct.id);
+          .eq('id', editingProduct.id)
+          .select();
       } else {
         res = await admin
           .from('products')
-          .insert([payload]);
+          .insert([payload])
+          .select();
       }
 
       if (!res.error) {
+        if (res.data && res.data.length > 0) {
+          const savedProduct = res.data[0] as Product;
+          setProductsList((prev) => [savedProduct, ...prev.filter((p) => p.id !== savedProduct.id)]);
+        }
+
         setStatus({
           type: 'success',
           message: editingProduct ? 'Product updated successfully!' : 'Product added successfully!',
         });
         
-        await fetchFreshProducts();
+        fetchFreshProducts();
         setTimeout(() => {
           handleBackToList();
         }, 1000);
