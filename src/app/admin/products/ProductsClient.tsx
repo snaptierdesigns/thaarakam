@@ -241,7 +241,7 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     });
   };
 
-  // Direct client-side keyless image upload (Catbox.moe + local compressed fallback)
+  // Direct client-side image upload (ImgBB 100% Free CDN + Supabase Storage fallback)
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, slotIndex: number) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -251,8 +251,40 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     setStatus(null);
 
     try {
-      // 1. Primary: Upload directly to Supabase Storage 'products' bucket (Native CDN, 100% Reliable Mobile & PC)
+      // 1. Primary: Upload directly to ImgBB (0 BYTES Supabase Egress, 100% Free CDN)
+      const IMGBB_KEY = 'd3905eac5d51cfab6cde5c943670d3e0';
       const compressedFile = await compressImageIfLarge(file);
+
+      const reader = new FileReader();
+      const base64String = await new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          const res = reader.result as string;
+          resolve(res.split(',')[1] || res);
+        };
+        reader.readAsDataURL(compressedFile);
+      });
+
+      const formData = new URLSearchParams();
+      formData.append('key', IMGBB_KEY);
+      formData.append('image', base64String);
+
+      const imgbbRes = await fetch('https://api.imgbb.com/1/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const imgbbData = await imgbbRes.json();
+      if (imgbbData && imgbbData.data && imgbbData.data.url) {
+        setFormImages((prev) => {
+          const next = [...prev];
+          next[slotIndex] = imgbbData.data.url;
+          return next;
+        });
+        setStatus({ type: 'success', message: 'Image uploaded successfully.' });
+        return;
+      }
+
+      // 2. Secondary Fallback: Supabase Storage if ImgBB API fails
       const fileExt = (file.name.split('.').pop() || 'jpg').toLowerCase();
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${fileExt}`;
 
@@ -278,24 +310,9 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
           return;
         }
       }
-
-      // 2. Fallback: local compressed base64 if storage is unavailable
-      const smallDataUri = await compressImageForLocalDb(file);
-      setFormImages((prev) => {
-        const next = [...prev];
-        next[slotIndex] = smallDataUri;
-        return next;
-      });
-      setStatus({ type: 'success', message: 'Image processed successfully.' });
     } catch (err: any) {
       console.error('Image upload failed:', err);
-      // Fallback to local base64 on network exception
-      const smallDataUri = await compressImageForLocalDb(file);
-      setFormImages((prev) => {
-        const next = [...prev];
-        next[slotIndex] = smallDataUri;
-        return next;
-      });
+      setStatus({ type: 'error', message: 'Failed to upload image. Please try again.' });
     } finally {
       setUploadingIndex(null);
     }
