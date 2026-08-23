@@ -76,6 +76,37 @@ export default function CartClient({ settings }: CartClientProps) {
 
     setPaying(true);
 
+    // Live Stock Validation Check against Supabase
+    try {
+      const productIds = cart.map((item) => item.product.id);
+      const { data: liveProducts } = await supabase
+        .from('products')
+        .select('id, name, availability, stock_count, is_preorder')
+        .in('id', productIds);
+
+      if (liveProducts && liveProducts.length > 0) {
+        const outOfStockItems: string[] = [];
+
+        for (const item of cart) {
+          const live = liveProducts.find((p) => p.id === item.product.id);
+          if (live) {
+            const isOos = live.availability === 'out_of_stock' || (live.stock_count !== null && live.stock_count <= 0);
+            if (isOos && !live.is_preorder) {
+              outOfStockItems.push(live.name || item.product.name);
+            }
+          }
+        }
+
+        if (outOfStockItems.length > 0) {
+          alert(`The following item(s) in your cart are currently out of stock:\n\n• ${outOfStockItems.join('\n• ')}\n\nPlease remove out-of-stock items from your cart before proceeding.`);
+          setPaying(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error verifying live stock prior to checkout:', err);
+    }
+
     const scriptLoaded = await loadRazorpayScript();
     if (!scriptLoaded) {
       alert('Failed to load Razorpay Payment Gateway. Please check your internet connection.');
