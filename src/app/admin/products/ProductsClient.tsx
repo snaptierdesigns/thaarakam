@@ -435,17 +435,13 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
   };
 
   // Helper to get stock priority: 1 = In Stock, 2 = Low Stock (<= 3), 3 = Out of Stock
+  // Helper to get stock priority: 1 = Available/In Stock (Top), 2 = Out of Stock (Bottom)
   const getStockPriority = (product: Product): number => {
-    const isOutOfStock = product.availability === 'out_of_stock' || product.stock_count === 0;
-    if (isOutOfStock) return 3;
-
-    const isLowStock = product.stock_count !== null && product.stock_count !== undefined && product.stock_count > 0 && product.stock_count <= 3;
-    if (isLowStock) return 2;
-
-    return 1; // In stock
+    const isOutOfStock = product.availability === 'out_of_stock' || (product.stock_count !== null && product.stock_count !== undefined && product.stock_count <= 0 && !product.is_preorder);
+    return isOutOfStock ? 2 : 1;
   };
 
-  // Client filtering and stockwise sorting
+  // Client filtering and stockwise sorting (Newest at top, Out of stock at bottom)
   const filteredProducts = productsList
     .filter((product) => {
       const matchesSearch = searchQuery
@@ -469,10 +465,16 @@ export default function ProductsClient({ initialProducts }: ProductsClientProps)
     .sort((a, b) => {
       const priorityA = getStockPriority(a);
       const priorityB = getStockPriority(b);
+
+      // 1. Out of stock products go to the bottom
       if (priorityA !== priorityB) {
         return priorityA - priorityB;
       }
-      return 0; // Maintain default creation date order within same stock tier
+
+      // 2. Newest products come to the top (created_at descending)
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return timeB - timeA;
     });
 
   return (
