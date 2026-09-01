@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/components/ui/CartProvider';
@@ -30,9 +30,61 @@ export default function CartClient({ settings }: CartClientProps) {
   const [paying, setPaying] = useState(false);
   const [confirmedOrder, setConfirmedOrder] = useState<Order | null>(null);
 
-  // Dynamic Shipping Calculation based on Selected Country, State, and Admin Settings
   const shippingFee = calculateShippingFee(form.country, form.state, settings);
   const grandTotal = subtotal + shippingFee;
+
+  // Auto-recover completed orders if mobile browser reloaded during UPI payment app switch
+  useEffect(() => {
+    async function recoverPendingOrder() {
+      try {
+        const storedPending = localStorage.getItem('thaarakam_pending_order');
+        if (!storedPending) return;
+
+        const pendingInfo = JSON.parse(storedPending);
+        if (!pendingInfo || !pendingInfo.orderNumber) return;
+
+        // Query Supabase for the order status
+        const { data: dbOrder } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('order_number', pendingInfo.orderNumber)
+          .maybeSingle();
+
+        if (dbOrder && dbOrder.payment_status === 'paid') {
+          clearCart();
+          localStorage.removeItem('thaarakam_pending_order');
+          setConfirmedOrder(dbOrder as Order);
+          return;
+        }
+
+        // If not paid in DB yet, verify live with Razorpay API
+        const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TPJiMn4Qvczv7y';
+        const rzpSecret = 'yW3mHCZ1561lgdd2zdd2UE16';
+        const authHeader = 'Basic ' + btoa(`${rzpKey}:${rzpSecret}`);
+
+        const res = await fetch('https://api.razorpay.com/v1/payments?count=20', {
+          headers: { 'Authorization': authHeader }
+        });
+        const rzpData = await res.json();
+        if (rzpData && rzpData.items) {
+          const match = rzpData.items.find((p: any) => p.status === 'captured' && p.notes && p.notes.order_number === pendingInfo.orderNumber);
+          if (match) {
+            await supabase
+              .from('orders')
+              .update({ payment_status: 'paid', payment_id: match.id })
+              .eq('order_number', pendingInfo.orderNumber);
+
+            clearCart();
+            localStorage.removeItem('thaarakam_pending_order');
+            setConfirmedOrder({ ...pendingInfo.initialOrderRecord, payment_status: 'paid', payment_id: match.id } as Order);
+          }
+        }
+      } catch (e) {
+        console.error('Order recovery check note:', e);
+      }
+    }
+    recoverPendingOrder();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -150,6 +202,7 @@ export default function CartClient({ settings }: CartClientProps) {
 
     try {
       await supabase.from('orders').insert([initialOrderRecord]);
+      localStorage.setItem('thaarakam_pending_order', JSON.stringify({ orderNumber, initialOrderRecord }));
     } catch (e) {
       console.error('Pre-checkout order draft save note:', e);
     }
@@ -228,6 +281,7 @@ export default function CartClient({ settings }: CartClientProps) {
         }
 
         // 3. Clear Cart & Display Order Confirmation Modal
+        localStorage.removeItem('thaarakam_pending_order');
         clearCart();
         setConfirmedOrder(confirmedOrderData as Order);
         setPaying(false);

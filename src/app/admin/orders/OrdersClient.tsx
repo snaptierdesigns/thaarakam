@@ -27,13 +27,67 @@ export default function OrdersClient() {
         console.error('Error fetching orders:', error);
         setFetchError(error.message || 'Database error occurred. Please check Supabase project status/billing.');
       } else if (data) {
-        setOrders(data as Order[]);
+        const orderList = data as Order[];
+        setOrders(orderList);
+        // Background auto-sync awaiting_payment orders with live Razorpay status
+        syncAwaitingPaymentOrders(orderList);
       }
     } catch (e: any) {
       console.error('Error fetching orders exception:', e);
       setFetchError(e?.message || 'An unexpected connection error occurred.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Auto-verify awaiting_payment orders against live Razorpay API
+  const syncAwaitingPaymentOrders = async (fetchedOrders: Order[]) => {
+    const awaitingOrders = fetchedOrders.filter(o => o.payment_status === 'awaiting_payment');
+    if (awaitingOrders.length === 0) return;
+
+    try {
+      const rzpKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_live_TPJiMn4Qvczv7y';
+      const rzpSecret = 'yW3mHCZ1561lgdd2zdd2UE16';
+      const authHeader = 'Basic ' + btoa(`${rzpKey}:${rzpSecret}`);
+
+      const res = await fetch('https://api.razorpay.com/v1/payments?count=100', {
+        headers: { 'Authorization': authHeader }
+      });
+      const data = await res.json();
+      if (!data || !data.items) return;
+
+      const payments = data.items;
+      const updatesToApply: { id: string; payment_id: string }[] = [];
+
+      for (const order of awaitingOrders) {
+        const match = payments.find((p: any) => {
+          if (p.status !== 'captured') return false;
+          if (p.notes && p.notes.order_number === order.order_number) return true;
+          return false;
+        });
+
+        if (match) {
+          updatesToApply.push({ id: order.id, payment_id: match.id });
+        }
+      }
+
+      if (updatesToApply.length > 0) {
+        for (const update of updatesToApply) {
+          await supabase
+            .from('orders')
+            .update({ payment_status: 'paid', payment_id: update.payment_id })
+            .eq('id', update.id);
+        }
+
+        setOrders(prev =>
+          prev.map(o => {
+            const up = updatesToApply.find(u => u.id === o.id);
+            return up ? { ...o, payment_status: 'paid', payment_id: up.payment_id } : o;
+          })
+        );
+      }
+    } catch (e) {
+      console.error('Background Razorpay payment verification note:', e);
     }
   };
 
