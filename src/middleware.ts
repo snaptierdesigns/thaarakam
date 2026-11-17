@@ -4,6 +4,9 @@ import type { NextRequest } from 'next/server';
 // Aggressive SEO crawlers, AI scrapers, and bot agents to reject at the Edge
 const BLOCKED_BOT_REGEX = /ahrefsbot|semrushbot|dotbot|mj12bot|petalbot|bytespider|amazonbot|gptbot|claudebot|cohere-ai|yandex|megaindex|blexbot|rogerbot/i;
 
+// Valid cryptographic admin session token
+const VALID_ADMIN_SESSION_TOKEN = '4779e7a33bf221a0cad1e3a6ba6448e8ddee8e64f403b99463b780f89d6f4ddf';
+
 export function middleware(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || '';
 
@@ -18,8 +21,8 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const adminSession = request.cookies.get('thaarakam_admin_session')?.value;
 
-    // If session cookie is missing or not authenticated, redirect to login
-    if (!adminSession || adminSession !== 'authenticated') {
+    // If session cookie is missing or not cryptographically valid, redirect to login
+    if (!adminSession || adminSession !== VALID_ADMIN_SESSION_TOKEN) {
       const loginUrl = new URL('/admin/login', request.url);
       return NextResponse.redirect(loginUrl);
     }

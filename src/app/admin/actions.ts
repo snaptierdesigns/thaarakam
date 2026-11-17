@@ -1,16 +1,35 @@
 import { getSupabaseAdmin, supabase } from '@/lib/supabase';
 import { Settings } from '@/types';
 
-// Admin Login helper
-export async function loginAdmin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
-  const expectedEmail = 'anjuharikrishnan95@gmail.com';
-  const expectedPassword = 'adminadmin';
+// Cryptographic constants for secure admin authentication
+const SALT = 'THAARAKAM_SEC_SALT_2026_9x';
+const EXPECTED_HASH = '49fc66109b5d5c4cd2dd9d6c10f97c4eba8ef88eb7ee248cf2f379a48cd63e8c';
+export const VALID_ADMIN_SESSION_TOKEN = '4779e7a33bf221a0cad1e3a6ba6448e8ddee8e64f403b99463b780f89d6f4ddf';
+const ALLOWED_EMAILS = ['anjuharikrishnan95@gmail.com', 'admin@thaarakam.in'];
 
-  if (email.trim().toLowerCase() === expectedEmail && password === expectedPassword) {
+async function computeHash(input: string): Promise<string> {
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+    const msgUint8 = new TextEncoder().encode(input);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  return '';
+}
+
+// Secure Admin Login helper using salted one-way hash
+export async function loginAdmin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!ALLOWED_EMAILS.includes(cleanEmail)) {
+    return { success: false, error: 'Incorrect email or password.' };
+  }
+
+  const computed = await computeHash(password + ':' + SALT);
+  if (computed && computed === EXPECTED_HASH) {
     if (typeof document !== 'undefined') {
-      document.cookie = "thaarakam_admin_session=authenticated; path=/; max-age=604800; SameSite=Lax";
+      document.cookie = `thaarakam_admin_session=${VALID_ADMIN_SESSION_TOKEN}; path=/; max-age=604800; SameSite=Lax`;
       try {
-        localStorage.setItem('thaarakam_admin_session', 'authenticated');
+        localStorage.setItem('thaarakam_admin_session', VALID_ADMIN_SESSION_TOKEN);
       } catch (e) {}
     }
     return { success: true };

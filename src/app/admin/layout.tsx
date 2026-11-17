@@ -1,19 +1,60 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { logoutAdmin } from './actions';
+import { logoutAdmin, VALID_ADMIN_SESSION_TOKEN } from './actions';
 import { LayoutDashboard, ShoppingBag, Layers, Settings, LogOut, Menu, X, ArrowLeft, MessageSquare, Package } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
-  // If we are on the login page, don't show the dashboard shell layout
+  // Strict client-side route guard across all admin subroutes
+  useEffect(() => {
+    if (pathname === '/admin/login') {
+      setIsAuthorized(true);
+      return;
+    }
+
+    try {
+      const localToken = localStorage.getItem('thaarakam_admin_session');
+      const cookieMatch = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('thaarakam_admin_session='));
+      const cookieVal = cookieMatch ? cookieMatch.split('=')[1] : null;
+
+      if (localToken === VALID_ADMIN_SESSION_TOKEN || cookieVal === VALID_ADMIN_SESSION_TOKEN) {
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
+        router.replace('/admin/login');
+      }
+    } catch {
+      setIsAuthorized(false);
+      router.replace('/admin/login');
+    }
+  }, [pathname, router]);
+
+  // If on login page, render login screen directly
   if (pathname === '/admin/login') {
     return <>{children}</>;
+  }
+
+  // Prevent rendering admin interface or executing catalog operations until authentication is verified
+  if (isAuthorized !== true) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-2 border-foreground border-t-transparent" />
+          <p className="text-xs text-secondary font-medium tracking-wide">
+            Verifying manager authentication...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const menuItems = [
