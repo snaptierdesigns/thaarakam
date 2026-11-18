@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
 
     // If session cookie is missing or not cryptographically valid, redirect to login
     if (!adminSession || adminSession !== VALID_ADMIN_SESSION_TOKEN) {
-      const loginUrl = new URL('/admin/login', request.url);
+      const loginUrl = new URL('/admin/login/', request.url);
       return NextResponse.redirect(loginUrl);
     }
   }
