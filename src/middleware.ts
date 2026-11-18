@@ -17,8 +17,8 @@ export function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect all /admin routes, except the login page itself
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+  // Protect all /admin routes, except the login page itself (including /admin/login and /admin/login/)
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const adminSession = request.cookies.get('thaarakam_admin_session')?.value;
 
     // If session cookie is missing or not cryptographically valid, redirect to login

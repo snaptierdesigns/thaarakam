@@ -12,9 +12,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
+  const isLoginPage = Boolean(pathname && pathname.startsWith('/admin/login'));
+
   // Strict client-side route guard across all admin subroutes
   useEffect(() => {
-    if (pathname === '/admin/login') {
+    if (isLoginPage) {
       setIsAuthorized(true);
       return;
     }
@@ -30,16 +32,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setIsAuthorized(true);
       } else {
         setIsAuthorized(false);
-        router.replace('/admin/login');
+        if (typeof window !== 'undefined') {
+          window.location.replace('/admin/login/');
+        }
       }
     } catch {
       setIsAuthorized(false);
-      router.replace('/admin/login');
+      if (typeof window !== 'undefined') {
+        window.location.replace('/admin/login/');
+      }
     }
-  }, [pathname, router]);
+  }, [pathname, isLoginPage]);
 
   // If on login page, render login screen directly
-  if (pathname === '/admin/login') {
+  if (isLoginPage) {
     return <>{children}</>;
   }
 
@@ -69,8 +75,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const handleLogout = async () => {
     if (confirm('Are you sure you want to log out?')) {
       await logoutAdmin();
-      router.push('/admin/login');
-      router.refresh();
+      window.location.replace('/admin/login/');
     }
   };
 
