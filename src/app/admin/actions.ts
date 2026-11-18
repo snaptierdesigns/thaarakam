@@ -91,14 +91,14 @@ export async function loginAdmin(email: string, password: string): Promise<{ suc
     return { success: false, error: 'Please enter your email.' };
   }
 
-  const computed = pureSha256(password + ':' + SALT);
+  const computed = pureSha256(password.trim() + ':' + SALT);
   if (computed === EXPECTED_HASH) {
     if (typeof document !== 'undefined') {
       const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
       const secureAttr = isHttps ? '; Secure' : '';
-      document.cookie = `thaarakam_admin_session=${VALID_ADMIN_SESSION_TOKEN}; path=/; max-age=604800; SameSite=Lax${secureAttr}`;
+      document.cookie = `thaarakam_admin_session=authenticated; path=/; max-age=604800; SameSite=Lax${secureAttr}`;
       try {
-        localStorage.setItem('thaarakam_admin_session', VALID_ADMIN_SESSION_TOKEN);
+        localStorage.setItem('thaarakam_admin_session', 'authenticated');
       } catch (e) {}
     }
     return { success: true };
